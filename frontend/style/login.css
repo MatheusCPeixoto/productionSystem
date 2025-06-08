@@ -1,0 +1,198 @@
+/* Custom font - Inter is a good modern choice */
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Custom base colors */
+.bg-industrial-dark { background-color: #2d3748; }
+.bg-industrial-medium { background-color: #4a5568; }
+.text-industrial-accent { color: #38bdf8; }
+.border-industrial-accent { border-color: #38bdf8; }
+
+/* Main Card Styling */
+.main-card {
+    padding: 1.5rem; /* p-6 */
+    border-radius: 0.75rem; /* rounded-xl */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-2xl */
+    width: 100%;
+    max-width: 32rem; /* max-w-lg */
+}
+
+@media (min-width: 640px) { /* sm: */
+    .main-card {
+        padding: 2rem; /* sm:p-8 */
+    }
+}
+@media (min-width: 768px) { /* md: */
+    .main-card {
+        padding: 3rem; /* md:p-12 */
+    }
+}
+
+/* Logo/Title Area Styling */
+.logo-title-area .fa-industry {
+    font-size: 2.25rem; /* text-4xl */
+    line-height: 2.5rem;
+    margin-bottom: 0.75rem; /* mb-3 is already there, but as an example */
+}
+.logo-title-area h1 {
+    font-size: 1.5rem; /* text-2xl */
+    line-height: 2rem;
+    font-weight: 700; /* font-bold */
+    color: #ffffff;
+}
+.logo-title-area p {
+    color: #a0aec0; /* text-gray-400 equivalent */
+    font-size: 0.875rem; /* text-sm */
+    line-height: 1.25rem;
+}
+
+@media (min-width: 640px) { /* sm: */
+    .logo-title-area .fa-industry {
+        font-size: 3rem; /* sm:text-5xl */
+        line-height: 1;
+    }
+    .logo-title-area h1 {
+        font-size: 1.875rem; /* sm:text-3xl */
+        line-height: 2.25rem;
+    }
+}
+
+/* Form Label Styling */
+form label {
+    font-size: 0.875rem; /* text-sm */
+    line-height: 1.25rem;
+    font-weight: 500; /* font-medium */
+    color: #d1d5db; /* text-gray-300 equivalent */
+}
+
+/* Input Field Styling */
+.input-industrial {
+    background-color: #4a5568; /* Medium gray */
+    border: 2px solid #718096; /* Lighter gray border */
+    color: #e2e8f0; /* Light gray text */
+    padding-left: 2.5rem; /* pl-10 for icon */
+    padding-right: 0.75rem; /* pr-3 */
+    padding-top: 0.5rem; /* py-2 */
+    padding-bottom: 0.5rem; /* py-2 */
+    border-radius: 0.5rem; /* rounded-lg */
+    width: 100%;
+}
+.input-industrial:focus {
+    outline: none;
+    border-color: #38bdf8; /* Light blue */
+    box-shadow: 0 0 0 2px #38bdf8;
+}
+.input-industrial::placeholder {
+    color: #a0aec0; /* Gray placeholder */
+}
+
+@media (min-width: 640px) { /* sm: */
+    .input-industrial {
+        padding-top: 0.625rem; /* sm:py-2.5 */
+        padding-bottom: 0.625rem; /* sm:py-2.5 */
+    }
+}
+
+.icon-input {
+    position: absolute;
+    top: 50%;
+    left: 0.75rem; /* 12px */
+    transform: translateY(-50%);
+    color: #a0aec0; /* Gray icon */
+}
+
+/* Button Base Styles */
+.btn-primary, .btn-secondary, .btn-admin {
+    padding-top: 0.625rem; /* py-2.5 */
+    padding-bottom: 0.625rem;
+    font-size: 0.875rem; /* text-sm */
+    line-height: 1.25rem;
+    border-radius: 0.5rem; /* rounded-lg */
+    font-weight: 600; /* font-semibold */
+}
+
+@media (min-width: 640px) { /* sm: */
+    .btn-primary, .btn-secondary {
+        padding-top: 0.75rem; /* sm:py-3 */
+        padding-bottom: 0.75rem;
+        font-size: 1rem; /* sm:text-base */
+        line-height: 1.5rem;
+    }
+}
+
+/* Primary Button */
+.btn-primary {
+    background-color: #38bdf8;
+    color: #ffffff;
+    transition: background-color 0.3s ease;
+}
+.btn-primary:hover {
+    background-color: #0ea5e9;
+}
+
+/* Secondary Button */
+.btn-secondary {
+    background-color: transparent;
+    color: #38bdf8;
+    border: 1px solid #38bdf8;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+.btn-secondary:hover {
+    background-color: #38bdf8;
+    color: #ffffff;
+}
+
+/* Admin Button Specifics */
+.btn-admin {
+    background-color: #4a5568;
+    color: #e2e8f0;
+    transition: background-color 0.3s ease;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+.btn-admin:hover {
+    background-color: #2d3748;
+}
+
+/* Message Area Styling - MODIFICADO ABAIXO */
+#messageArea {
+    text-align: center;
+    font-size: 0.875rem; /* text-sm da Tailwind */
+    line-height: 1.25rem; /* line-height correspondente */
+    border-radius: 0.375rem; /* rounded-md da Tailwind (6px) */
+
+    /* Adiciona padding e margin-top permanentemente para reservar espaço */
+    padding: 0.75rem; /* Equivalente ao p-3 que o JS aplicava */
+    margin-top: 1rem; /* Equivalente ao mt-4 que o JS aplicava */
+
+    /* Altura mínima para caber uma linha de texto + padding vertical */
+    /* 1.25rem (line-height) + 0.75rem (padding-top) + 0.75rem (padding-bottom) = 2.75rem */
+    min-height: 2.75rem;
+
+    /* Inicia invisível mas ocupando espaço, e transição suave */
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s; /* A transição de visibility é para garantir que não seja clicável quando invisível */
+}
+
+#messageArea.visible { /* Classe que o JS adicionará para mostrar a mensagem */
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Estilos para os tipos de mensagem (fundo e cor do texto) */
+/* Usei as cores que seu JS estava aplicando com classes Tailwind */
+.message-type-info {
+    background-color: #dbeafe; /* bg-blue-100 da Tailwind */
+    color: #1e40af;       /* text-blue-700 da Tailwind */
+}
+.message-type-error {
+    background-color: #fee2e2; /* bg-red-100 da Tailwind */
+    color: #991b1b;       /* text-red-700 da Tailwind */
+}
+.message-type-success {
+    background-color: #d1fae5; /* bg-green-100 da Tailwind */
+    color: #065f46;       /* text-green-700 da Tailwind */
+}

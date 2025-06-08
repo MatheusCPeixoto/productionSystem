@@ -1,0 +1,9 @@
+from rest_framework import viewsets
+
+from .models import OrderActivityProgress
+from .serializers import OrderActivityProgressSerializer
+
+
+class OrderActivityProgressViewSet(viewsets.ModelViewSet):
+    queryset = OrderActivityProgress.objects.all()
+    serializer_class = OrderActivityProgressSerializer

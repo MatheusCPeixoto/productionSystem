@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login do Sistema Industrial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../style/login.css">
+</head>
+<body class="bg-industrial-dark flex items-center justify-center min-h-screen p-4">
+
+<div class="bg-industrial-medium main-card relative flex flex-col">
+    <div class="absolute top-4 right-4 md:top-6 md:right-6">
+        <button id="adminButton" class="btn-admin flex items-center space-x-2">
+            <i class="fas fa-user-shield"></i>
+            <span>Administração</span>
+        </button>
+    </div>
+
+    <div class="logo-title-area text-center mb-8">
+        <i class="fas fa-industry text-industrial-accent mb-3"></i>
+        <h1>Portal Industrial</h1>
+        <p>Acesse sua estação ou terminal</p>
+    </div>
+
+    <form id="loginForm" class="space-y-6">
+        <div>
+            <label for="operatorCode" class="block mb-1">Código do Operador:</label>
+            <div class="relative">
+                    <span class="icon-input">
+                        <i class="fas fa-user-tie"></i>
+                    </span>
+                <input type="text" id="operatorCode" name="operatorCode"
+                       class="input-industrial w-full"
+                       placeholder="Seu código">
+            </div>
+        </div>
+
+        <div>
+            <label for="equipmentCode" class="block mb-1">Código do Equipamento:</label>
+            <div class="relative">
+                    <span class="icon-input">
+                        <i class="fas fa-robot"></i>
+                    </span>
+                <input type="text" id="equipmentCode" name="equipmentCode"
+                       class="input-industrial w-full"
+                       placeholder="Código do equipamento">
+            </div>
+        </div>
+
+        <div class="form-actions pt-4 space-y-4">
+            <button type="submit" id="enterButton"
+                    class="btn-primary w-full flex items-center justify-center space-x-2">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Entrar (Estação Dedicada)</span>
+            </button>
+
+            <button type="button" id="terminalButton"
+                    class="btn-secondary w-full flex items-center justify-center space-x-2">
+                <i class="fas fa-desktop"></i>
+                <span>Entrar como Terminal</span>
+            </button>
+        </div>
+    </form>
+
+    <div id="messageArea"></div>
+</div>
+
+<script src="../script/login.js"></script>
+</body>
+</html>
