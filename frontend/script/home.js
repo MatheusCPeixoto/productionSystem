@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const changeOpEqButton = document.getElementById('changeOpEqButton');
     const switchModeButton = document.getElementById('switchModeButton');
     const switchModeButtonText = document.getElementById('switchModeButtonText');
+    const multiOrderToggle = document.getElementById('multiOrderToggle');
 
     // Modais e seus componentes
     const orderInteractionModal = document.getElementById('orderInteractionModal');
@@ -24,10 +25,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- FUNÇÃO PARA EXIBIR MENSAGENS ---
     function showMessage(text, type = 'info', area = mainMessageArea) {
-        if (!area) { console.warn("Área de mensagem não definida:", text); alert(text); return; }
+        if (!area) {
+            console.warn("Área de mensagem não definida:", text);
+            alert(text);
+            return;
+        }
         area.textContent = text;
         area.className = 'p-3 my-2 rounded-md text-center text-sm transition-opacity duration-300';
-        area.style.visibility = 'hidden'; area.style.opacity = '0';
+        area.style.visibility = 'hidden';
+        area.style.opacity = '0';
 
         if (type === 'success') area.classList.add('message-type-success');
         else if (type === 'error') area.classList.add('message-type-error');
@@ -40,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const isMainMsg = area === mainMessageArea;
         if (text && (type !== 'error' || isMainMsg)) {
-            setTimeout(() => {
+             setTimeout(() => {
                 area.style.opacity = '0';
                 setTimeout(() => { area.style.visibility = 'hidden'; }, 300);
             }, isMainMsg ? 5000 : 4000);
@@ -110,17 +116,38 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- LÓGICA DE RENDERIZAÇÃO E UI ---
     function loadUserInfo() {
         const loginType = sessionStorage.getItem('loginType');
-        let displayText = 'Terminal', showChangeOpEq = false, switchButtonText = 'Modo Estação';
+        const operatorCode = sessionStorage.getItem('operatorCode');
+        const equipmentCode = sessionStorage.getItem('equipmentCode');
+        let displayText = 'Terminal', showChangeOpEq = false, switchButtonText = 'Modo Estação', enableMultiOrder = false;
+
         if (loginType === 'station') {
             const operatorName = sessionStorage.getItem('operatorName') || 'Operador Indef.';
             const equipmentName = sessionStorage.getItem('equipmentName') || 'Equip. Indef.';
             displayText = `${operatorName} @ ${equipmentName}`;
             showChangeOpEq = true;
-            switchButtonNewText = 'Modo Terminal';
+            switchButtonText = 'Modo Terminal';
+            if (operatorCode || equipmentCode) {
+                enableMultiOrder = true;
+            }
         }
+
         if (userInfoDisplay) userInfoDisplay.textContent = displayText;
-        if (switchModeButtonText) switchModeButtonText.textContent = switchButtonNewText;
+        if (switchModeButtonText) switchModeButtonText.textContent = switchButtonText;
         if (changeOpEqButton) changeOpEqButton.style.display = showChangeOpEq ? 'flex' : 'none';
+        if (multiOrderToggle) {
+            multiOrderToggle.disabled = !enableMultiOrder;
+            const label = multiOrderToggle.closest('label');
+            if (label) {
+                label.classList.toggle('opacity-50', !enableMultiOrder);
+                label.classList.toggle('cursor-not-allowed', !enableMultiOrder);
+            }
+            if (!enableMultiOrder) {
+                multiOrderToggle.checked = false;
+                sessionStorage.setItem('multiOrderModeEnabled', 'false');
+            } else {
+                multiOrderToggle.checked = sessionStorage.getItem('multiOrderModeEnabled') === 'true';
+            }
+        }
     }
 
     async function fetchOngoingTasks() {
@@ -133,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!Array.isArray(fetchedTasksCache)) { fetchedTasksCache = []; throw new Error("Formato da resposta da API inválido."); }
             renderOngoingTasks(fetchedTasksCache);
             if (fetchedTasksCache.length > 0 && mainMessageArea.textContent.includes('Buscando')) {
-                showMessage('Apontamentos carregados.', 'success', mainMessageArea);
+                 showMessage('Apontamentos carregados.', 'success', mainMessageArea);
             }
         } catch (error) {
             console.error("Erro ao buscar tarefas:", error);
@@ -164,11 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
         card.className = 'bg-white p-5 rounded-xl shadow-lg task-card flex flex-col justify-between';
         card.dataset.orderId = task.order_code;
         card.dataset.activityId = task.code;
-
-        // LÓGICA DE STATUS ATUALIZADA: Usa o campo 'status' vindo diretamente da API
-        const status = task.status || 'Desconhecido';
+        const status = task.status || (task.end_date === null ? 'Em Andamento' : 'Finalizado');
         card.dataset.status = status.toLowerCase();
-
         card.dataset.searchableContent = `${task.order_code} ${task.activity?.description} ${operatorNames.join(' ')} ${equipmentNames.join(' ')}`.toLowerCase();
 
         let statusVisualClass = '', statusBlinkingClass = '';
@@ -226,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function openModal(modal) { if (modal) modal.classList.add('active'); }
     function closeModal(modal) { if (modal) modal.classList.remove('active'); }
 
-    // --- LÓGICA PARA ABRIR ORDEM ---
+    // --- LÓGICA PARA ABRIR ORDEM E MODAIS DE AÇÃO ---
     function displayOrderCodeInputInModal() {
         if (!orderInteractionModal) return;
         const modalTitle = orderInteractionModal.querySelector('#orderInteractionModalTitle');
@@ -339,9 +363,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function stopActivity(activityId, reasonId) {
+    async function stopActivity(activityId, reasonId, showSuccessMsg = true) {
         const apiUrl = `http://127.0.0.1:8000/api/v1/order-activity-progress/${activityId}/stop/`;
-        const modalMsgArea = document.getElementById('stopReasonModalMessageArea');
+        const modal = document.getElementById('stopReasonModal');
+        const modalMsgArea = modal ? modal.querySelector('#stopReasonModalMessageArea') : mainMessageArea;
         showMessage(`Registrando parada...`, 'info', modalMsgArea);
         try {
             const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stop_reason_code: reasonId }) });
@@ -349,17 +374,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 const errorData = await response.json(); throw new Error(errorData.error || 'Falha ao registrar parada.');
             }
             const result = await response.json();
-            showMessage(result.message, 'success', mainMessageArea);
-            closeModal(document.getElementById('stopReasonModal'));
-            await fetchOngoingTasks();
+            if (showSuccessMsg) { showMessage(result.message, 'success', mainMessageArea); }
+            if (modal) closeModal(modal);
+            return { success: true };
         } catch (error) {
             console.error("Erro ao parar atividade:", error); showMessage(`Erro: ${error.message}`, 'error', modalMsgArea);
+            return { success: false, error: error.message };
         }
     }
 
-    async function resumeActivity(activityId) {
-        const apiUrl = `http://127.0.0.1:8000/api/v1/order-activity-progress/${activityId}/resume/`;
-        showMessage(`Retomando apontamento ${activityId}...`, 'info', mainMessageArea);
+    async function resumeActivity(activityIdToResume) {
+        const isMultiOrderMode = sessionStorage.getItem('multiOrderModeEnabled') === 'true';
+        if (isMultiOrderMode) {
+            const activeTask = fetchedTasksCache.find(task => (task.status || (task.end_date === null ? 'Em Andamento' : 'Finalizado')) === 'Em Andamento' && task.code.toString() !== activityIdToResume.toString());
+            if (activeTask) {
+                showMessage(`Modo Múltipla Ordem: Parando tarefa ativa ${activeTask.code}...`, 'info', mainMessageArea);
+                const stopResult = await stopActivity(activeTask.code, '20', false);
+                if (!stopResult.success) {
+                    showMessage(`Falha ao parar a tarefa anterior (${activeTask.code}). Ação cancelada.`, 'error', mainMessageArea);
+                    await fetchOngoingTasks(); // Recarrega para refletir o estado real
+                    return;
+                }
+            }
+        }
+        const apiUrl = `http://127.0.0.1:8000/api/v1/order-activity-progress/${activityIdToResume}/resume/`;
+        showMessage(`Retomando apontamento ${activityIdToResume}...`, 'info', mainMessageArea);
         try {
             const response = await fetch(apiUrl, { method: 'POST' });
             if (!response.ok) {
@@ -369,7 +408,9 @@ document.addEventListener('DOMContentLoaded', () => {
             showMessage(result.message, 'success', mainMessageArea);
             await fetchOngoingTasks();
         } catch (error) {
-            console.error("Erro ao retomar atividade:", error); showMessage(`Erro: ${error.message}`, 'error', mainMessageArea);
+            console.error("Erro ao retomar atividade:", error);
+            showMessage(`Erro: ${error.message}`, 'error', mainMessageArea);
+            await fetchOngoingTasks();
         }
     }
 
@@ -386,12 +427,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- EVENT LISTENERS ---
     if (triggerOpenOrderModalButton) triggerOpenOrderModalButton.addEventListener('click', displayOrderCodeInputInModal);
     if (searchInputOngoingTasks) searchInputOngoingTasks.addEventListener('input', filterOngoingTasks);
-
     [document.getElementById('closeOrderInteractionModal'), document.getElementById('closeOpEqModal'), document.getElementById('closeStopReasonModal'), document.getElementById('closeFinalizeTaskModal'), document.getElementById('closeNcModal')]
         .forEach(btn => { if(btn) btn.addEventListener('click', () => closeModal(btn.closest('.modal'))) });
 
     if (changeOpEqButton) changeOpEqButton.addEventListener('click', () => { currentOrderCodeForProcessing = null; openOpEqModalForChanges(true, true); });
-
     if (switchModeButton) {
         switchModeButton.addEventListener('click', () => {
             const currentLoginType = sessionStorage.getItem('loginType');
@@ -404,6 +443,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 showMessage('Para Modo Estação, informe Operador e Equipamento.', 'info', mainMessageArea);
                 openOpEqModalForChanges(true, true);
             }
+        });
+    }
+
+    if (multiOrderToggle) {
+        multiOrderToggle.addEventListener('change', (event) => {
+            const isEnabled = event.target.checked;
+            sessionStorage.setItem('multiOrderModeEnabled', isEnabled);
+            showMessage(`Modo Múltipla Ordem ${isEnabled ? 'ATIVADO' : 'DESATIVADO'}.`, 'info', mainMessageArea);
         });
     }
 
@@ -466,7 +513,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(modal) { modal.querySelector('#finalizeModalActivityId').value = activityId; modal.querySelector('#finalizeQuantityInput').value = ''; }
                 openModal(modal);
             } else if (targetButton.classList.contains('action-resume')) {
-                targetButton.disabled = true; await resumeActivity(activityId); targetButton.disabled = false;
+                targetButton.disabled = true; targetButton.innerHTML = `<i class="fas fa-spinner fa-spin fa-xl"></i>`;
+                await resumeActivity(activityId);
             }
         });
     }

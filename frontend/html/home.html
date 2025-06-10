@@ -65,6 +65,21 @@
             </button>
         </div>
     </div>
+    <div class="flex items-center space-x-2 order-2 sm:order-3 sm:ml-auto">
+        <div class="flex items-center space-x-2 mr-2" id="multiOrderToggleContainer" title="No Modo Múltipla Ordem, apenas uma tarefa pode estar 'Em Andamento' por vez.">
+            <span class="text-sm font-medium hidden sm:inline">Múltipla Ordem</span>
+            <label for="multiOrderToggle" class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" value="" id="multiOrderToggle" class="sr-only peer" disabled> <div class="w-11 h-6 bg-gray-400 rounded-full peer peer-focus:ring-2 peer-focus:ring-sky-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+            </label>
+        </div>
+
+        <button id="triggerOpenOrderModalButton" class="bg-sky-500 ...">
+            </button>
+        <button id="changeOpEqButton" class="bg-orange-500 ...">
+            </button>
+        <button id="switchModeButton" class="bg-teal-500 ...">
+            </button>
+    </div>
 </header>
 
 <main class="container mx-auto pt-24 pb-8 px-4">
