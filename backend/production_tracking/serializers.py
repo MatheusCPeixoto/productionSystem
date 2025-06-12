@@ -36,47 +36,19 @@ class ActivityWorkforceSerializer(serializers.ModelSerializer):
 
 
 class OrderActivityProgressSerializer(serializers.ModelSerializer):
-    activity = ActivitySerializer(
-        read_only=True
-    )
-    active_equipment_log = ActivityEquipmentSerializer(
-        source='equipment_logs', # Muito mais limpo!
-        many=True,
-        read_only=True
-    )
-    active_workforce_log = ActivityWorkforceSerializer(
-        source='workforce_logs', # Muito mais limpo!
-        many=True,
-        read_only=True
-    )
+    # Campos aninhados (sua implementação está ótima)
+    activity = ActivitySerializer(read_only=True)
+    active_equipment_log = ActivityEquipmentSerializer(source='equipment_logs', many=True, read_only=True)
+    active_workforce_log = ActivityWorkforceSerializer(source='workforce_logs', many=True, read_only=True)
 
+    # Campo calculado (sua implementação está ótima)
     status = serializers.SerializerMethodField()
-
-    def get_status(self, obj: OrderActivityProgress) -> str:
-        """
-        Calcula o status real do apontamento com base na nova regra.
-        'obj' é a instância do OrderActivityProgress que está sendo serializada.
-        """
-        # 1. Se o apontamento já tem uma data de fim, ele está finalizado.
-        if obj.end_date is not None:
-            return "Finalizado"
-
-        # 2. Se não está finalizado, verifica se há alguma parada aberta.
-        #    Verifica se existe algum log de parada (de operador OU de equipamento)
-        #    ligado a este apontamento que NÃO tenha end_date.
-        has_open_workforce_stop = WorkforceStoppageLog.objects.filter(order_activity=obj,
-                                                                      end_date__isnull=True).exists()
-        has_open_equipment_stop = EquipmentStoppageLog.objects.filter(order_activity=obj,
-                                                                      end_date__isnull=True).exists()
-
-        if has_open_workforce_stop or has_open_equipment_stop:
-            return "Parado"
-
-        # 3. Se não está finalizado e não tem paradas abertas, está em andamento.
-        return "Em Andamento"
 
     class Meta:
         model = OrderActivityProgress
+        # --- AJUSTE AQUI ---
+        # Garantir que todos os campos usados pelo serializer e pelo frontend estejam listados.
+        # Adicionei 'company_code' e 'branch_code' que seu frontend usava para iniciar novos apontamentos.
         fields = (
             'code',
             'order_code',
@@ -86,7 +58,23 @@ class OrderActivityProgressSerializer(serializers.ModelSerializer):
             'end_date',
             'quantity',
             'status',
-            'active_equipment_log',  # Nomes mantidos
-            'active_workforce_log'   # Nomes mantidos
+            'active_equipment_log',
+            'active_workforce_log',
+            'company_code',  # Adicionado para frontend
+            'branch_code',  # Adicionado para frontend
         )
 
+    def get_status(self, obj: OrderActivityProgress) -> str:
+        # Sua implementação aqui está perfeita, sem necessidade de alterações.
+        if obj.end_date is not None:
+            return "Finalizado"
+
+        has_open_workforce_stop = WorkforceStoppageLog.objects.filter(order_activity=obj,
+                                                                      end_date__isnull=True).exists()
+        has_open_equipment_stop = EquipmentStoppageLog.objects.filter(order_activity=obj,
+                                                                      end_date__isnull=True).exists()
+
+        if has_open_workforce_stop or has_open_equipment_stop:
+            return "Parado"
+
+        return "Em Andamento"

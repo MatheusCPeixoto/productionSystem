@@ -56,9 +56,21 @@ class OrderActivityProgress(models.Model):
         null=True,
         verbose_name='Quantidade'
     )  # Field name made lowercase.
+    # --- ADICIONE ESTE CAMPO AO SEU MODELO ---
+    STATUS_CHOICES = [
+        ('Em Andamento', 'Em Andamento'),
+        ('Parado', 'Parado'),
+        ('Finalizado', 'Finalizado'),
+    ]
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='Em Andamento', # Define o valor inicial padrão
+        verbose_name="Status do Apontamento"
+    )
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'A_ATIVIDADE'
         verbose_name = 'Atividade da Ordem'
         verbose_name_plural = 'Atividades da Ordem'
