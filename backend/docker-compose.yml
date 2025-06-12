@@ -1,0 +1,24 @@
+# backend/docker-compose.yml
+version: '3.8'
+
+services:
+  web:
+    build: . # Constrói a imagem a partir do Dockerfile neste diretório
+    command: gunicorn core.asgi:application --bind 0.0.0.0:8000 --worker-class uvicorn.workers.UvicornWorker --workers 2
+    volumes:
+      - .:/app # Monta o diretório atual do backend dentro do container
+      - static_volume:/app/staticfiles # Volume para arquivos estáticos
+      - media_volume:/app/mediafiles   # Volume para arquivos de mídia
+    expose:
+      - "8000"
+    # --- Aqui é onde o magic acontece! ---
+    env_file:
+      - .env.production # Carrega todas as variáveis de ambiente deste arquivo para o container 'web'
+    # ------------------------------------
+    # Se você tiver um serviço de DB separado no docker-compose, adicione depends_on: - db
+    # depends_on:
+    #   - db
+
+volumes:
+  static_volume:
+  media_volume:

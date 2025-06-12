@@ -31,7 +31,7 @@ function showMessage(text, type = 'info') {
 const buscarInfoOperador = async (operatorCode) => {
     // IMPORTANTE: Use o URL base da sua API Django.
     // A URL '/api/v1/workforce/${operatorCode}' foi baseada nos seus logs de erro anteriores.
-    const apiUrl = `http://127.0.0.1:8000/api/v1/workforce/${encodeURIComponent(operatorCode)}/`; // Verifique se esta URL está 100% correta
+    const apiUrl = `/api/v1/workforce/${encodeURIComponent(operatorCode)}/`; // Verifique se esta URL está 100% correta
 
     try {
         const response = await fetch(apiUrl);
@@ -69,7 +69,7 @@ const buscarInfoOperador = async (operatorCode) => {
 const buscarInfoEquipamento = async (equipmentCode) => {
     // IMPORTANTE: Use o URL base da sua API Django.
     // A URL '/api/v1/equipments/${equipmentCode}/' foi baseada nos seus logs de erro e na necessidade da barra final.
-    const apiUrl = `http://127.0.0.1:8000/api/v1/equipments/${encodeURIComponent(equipmentCode)}/`;
+    const apiUrl = `/api/v1/equipments/${encodeURIComponent(equipmentCode)}/`;
 
     try {
         const response = await fetch(apiUrl);
@@ -211,7 +211,7 @@ if (adminButton) {
         showMessage('Redirecionando para a área de Administração...', 'info');
         // window.location.href = '/admin/';
         if (terminalButton) terminalButton.disabled = true;
-        setTimeout(() => { window.location.href = 'http://127.0.0.1:8000/admin/'; }, 1000);
+        setTimeout(() => { window.location.href = '/admin/'; }, 1000);
     });
 }
 
