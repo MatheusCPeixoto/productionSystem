@@ -1,6 +1,4 @@
 // ../script/home.js
-
-// A estrutura inteira fica dentro deste listener para garantir que o HTML já existe.
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- SELEÇÃO DE ELEMENTOS DO DOM ---
@@ -16,12 +14,55 @@ document.addEventListener('DOMContentLoaded', () => {
     const multiOrderToggle = document.getElementById('multiOrderToggle');
     const opForm = document.getElementById('opEqForm');
 
-    // Modais (para fácil referência no event listener)
+    // Modais
     const stopReasonModal = document.getElementById('stopReasonModal');
     const finalizeTaskModal = document.getElementById('finalizeTaskModal');
     const ncModal = document.getElementById('ncModal');
     const opEqModal = document.getElementById('opEqModal');
     const orderInteractionModal = document.getElementById('orderInteractionModal');
+
+    // --- Menu Lateral ---
+    const menuToggleButton = document.getElementById('menuToggleButton');
+    const closeMenuButton = document.getElementById('closeMenuButton'); // Referência ao botão de fechar
+    const sideMenu = document.getElementById('sideMenu');
+    const menuOverlay = document.getElementById('menuOverlay');
+    const mainContentHome = document.getElementById('mainContentHome');
+
+    function openMenu() {
+        if (sideMenu && menuOverlay && mainContentHome) {
+            sideMenu.classList.remove('-translate-x-full');
+            if (window.innerWidth < 768) { // md breakpoint
+                menuOverlay.classList.remove('hidden');
+            }
+            mainContentHome.classList.add('md:pl-64');
+        }
+    }
+
+    function closeMenu() {
+        if (sideMenu && menuOverlay && mainContentHome) {
+            sideMenu.classList.add('-translate-x-full');
+            menuOverlay.classList.add('hidden');
+            mainContentHome.classList.remove('md:pl-64');
+        }
+    }
+
+    function toggleMenu() {
+        if (sideMenu && sideMenu.classList.contains('-translate-x-full')) {
+            openMenu();
+        } else {
+            closeMenu();
+        }
+    }
+
+    if (menuToggleButton) {
+        menuToggleButton.addEventListener('click', toggleMenu);
+    }
+    if (closeMenuButton) { // Listener para o botão de fechar
+        closeMenuButton.addEventListener('click', closeMenu);
+    }
+    if (menuOverlay) { // Overlay para fechar em telas menores
+        menuOverlay.addEventListener('click', closeMenu);
+    }
 
 
     // --- VARIÁVEIS DE ESTADO ---
@@ -29,15 +70,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentOrderCodeForProcessing = null;
 
     // --- FUNÇÕES AUXILIARES, DE BUSCA E UI ---
-
     function showMessage(text, type = 'info', area = mainMessageArea) {
         if (!area) { console.warn("Área de mensagem não definida:", text); alert(text); return; }
         area.textContent = text;
-        // Resetando classes para garantir que apenas as corretas sejam aplicadas
-        area.className = 'p-3 my-2 rounded-md text-center text-sm'; // Base classes
-        // Adicionando classes de visibilidade e transição do HTML original
+        area.className = 'p-3 my-2 rounded-md text-center text-sm';
         area.classList.add('min-h-[2.75rem]', 'transition-opacity', 'duration-300');
-
 
         if (type === 'success') area.classList.add('message-type-success');
         else if (type === 'error') area.classList.add('message-type-error');
@@ -46,23 +83,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (text) {
             area.style.visibility = 'visible';
             area.style.opacity = '1';
-            area.classList.add('visible'); // Adiciona a classe 'visible' definida no CSS
+            area.classList.add('visible');
         } else {
             area.style.visibility = 'hidden';
             area.style.opacity = '0';
-            area.classList.remove('visible'); // Remove a classe 'visible'
+            area.classList.remove('visible');
         }
-
         const isMainMsg = area === mainMessageArea;
-        // A lógica de timeout para esconder a mensagem
         if (text && (type !== 'error' || isMainMsg)) {
              setTimeout(() => {
                 area.style.opacity = '0';
-                // Espera a transição de opacidade terminar antes de esconder
                 setTimeout(() => {
                     area.style.visibility = 'hidden';
                     area.classList.remove('visible');
-                    // Limpa o texto apenas se for a área principal para evitar que mensagens de erro em modais sumam rápido demais
                     if (isMainMsg) area.textContent = '';
                 }, 300);
             }, isMainMsg ? 5000 : 4000);
@@ -128,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 option.textContent = reason.description;
                 selectElement.appendChild(option);
             });
-            showMessage('', 'info', modalMessageAreaElement); // Limpa a mensagem de carregando
+            showMessage('', 'info', modalMessageAreaElement);
         } catch (error) {
             console.error(`Erro ao carregar motivos de ${apiUrl}:`, error);
             showMessage('Falha ao carregar motivos.', 'error', modalMessageAreaElement);
@@ -148,29 +181,29 @@ document.addEventListener('DOMContentLoaded', () => {
             displayText = `${operatorName} @ ${equipmentName}`;
             showChangeOpEq = true;
             switchButtonText = 'Modo Terminal';
-            // Habilita multi-ordem apenas se ambos operador e equipamento estiverem definidos no modo estação
             if (operatorCode && equipmentCode) { enableMultiOrder = true; }
         }
 
-        if (userInfoDisplay) userInfoDisplay.textContent = displayText;
+        const userInfoContainerHome = document.getElementById('userInfoContainer');
+        if (userInfoContainerHome) {
+             const displayElement = userInfoContainerHome.querySelector('#userInfoDisplay');
+             if(displayElement) displayElement.textContent = displayText;
+        }
+
         if (switchModeButtonText) switchModeButtonText.textContent = switchButtonText;
         if (changeOpEqButton) changeOpEqButton.style.display = showChangeOpEq ? 'flex' : 'none';
 
         const multiOrderToggleContainer = document.getElementById('multiOrderToggleContainer');
-
         if (multiOrderToggle) {
             multiOrderToggle.disabled = !enableMultiOrder;
-            const label = multiOrderToggle.closest('label'); // O label que é o cursor-pointer
-
+            const label = multiOrderToggle.closest('label');
             if (multiOrderToggleContainer) {
                  multiOrderToggleContainer.style.display = enableMultiOrder ? 'flex' : 'none';
             }
-
-            if (label) { // Atualiza o estilo do label e do container
+            if (label) {
                 label.classList.toggle('opacity-50', !enableMultiOrder);
                 label.classList.toggle('cursor-not-allowed', !enableMultiOrder);
             }
-
             if (!enableMultiOrder) {
                 multiOrderToggle.checked = false;
                 sessionStorage.setItem('multiOrderModeEnabled', 'false');
@@ -222,25 +255,43 @@ document.addEventListener('DOMContentLoaded', () => {
         const operatorNames = (task.active_workforce_log || []).map(log => log.workforce_name || 'N/D');
         const equipmentNames = (task.active_equipment_log || []).map(log => log.equipment_description || 'N/D');
         const card = document.createElement('div');
-        card.className = 'bg-industrial-medium p-5 rounded-xl shadow-lg task-card flex flex-col justify-between border border-industrial-light';
+        card.className = 'bg-industrial-medium p-5 rounded-xl shadow-lg task-card flex flex-col justify-between border border-industrial-light relative';
         card.dataset.orderId = task.order_code;
-        card.dataset.activityId = task.code; // ID do OrderActivityProgress
+        card.dataset.activityId = task.code;
         const status = task.status || 'Desconhecido';
         card.dataset.status = status.toLowerCase();
         card.dataset.searchableContent = `${task.order_code} ${task.activity?.description} ${operatorNames.join(' ')} ${equipmentNames.join(' ')}`.toLowerCase();
 
         let statusVisualClass = '';
-        // A classe status-parado-blinking é aplicada diretamente no HTML se o status for 'Parado'
         if (status === 'Em Andamento') { statusVisualClass = 'bg-green-500 text-white'; }
         else if (status === 'Parado') { statusVisualClass = 'bg-yellow-500 text-white status-parado-blinking'; }
         else if (status === 'Finalizado') { statusVisualClass = 'bg-blue-500 text-white'; }
         else { statusVisualClass = 'bg-gray-500 text-white'; }
 
+        const detailButtonHtml = `
+            <a href="order-details.html?activityId=${task.code}" title="Ver Detalhes da Etapa"
+               class="absolute top-3 right-3 text-industrial-accent hover:text-sky-300 p-2 z-10 rounded-full hover:bg-industrial-light transition-colors duration-150">
+                <i class="fas fa-eye fa-lg"></i>
+            </a>
+        `;
+
         card.innerHTML = `
+            ${detailButtonHtml}
             <div class="flex-grow">
-                <div class="mb-4 text-center"><span class="px-3 py-1 inline-flex text-sm leading-tight font-bold rounded-full ${statusVisualClass}">${status}</span></div>
-                <div class="mb-3"><p class="text-industrial-primary text-lg font-bold truncate" title="${task.activity?.description || 'N/A'}">${task.activity?.description || 'Atividade não informada'}</p><p class="text-industrial-secondary text-sm" title="Ordem: ${task.order_code}"><strong class="font-semibold">OP:</strong> ${task.order_code} | <strong class="font-semibold">Seq:</strong> ${task.sequence}</p></div>
-                <div class="mb-4 text-sm text-industrial-secondary"><p><i class="fas fa-calendar-alt mr-2 w-4 text-center"></i>Iniciado em: ${task.start_date ? new Date(task.start_date).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}</p></div>
+                <div class="mb-3 pr-10">
+                    <p class="text-industrial-primary text-lg font-bold truncate" title="${task.activity?.description || 'N/A'}">
+                        ${task.activity?.description || 'Atividade não informada'}
+                    </p>
+                    <p class="text-industrial-secondary text-sm" title="Ordem: ${task.order_code}">
+                        <strong class="font-semibold">OP:</strong> ${task.order_code} | <strong class="font-semibold">Seq:</strong> ${task.sequence}
+                    </p>
+                </div>
+                <div class="mb-4 text-center">
+                    <span class="px-3 py-1 inline-flex text-sm leading-tight font-bold rounded-full ${statusVisualClass}">${status}</span>
+                </div>
+                <div class="mb-4 text-sm text-industrial-secondary">
+                    <p><i class="fas fa-calendar-alt mr-2 w-4 text-center"></i>Iniciado em: ${task.start_date ? new Date(task.start_date).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}</p>
+                </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-b border-industrial-light py-3 my-3">
                     <div><h4 class="font-semibold text-industrial-secondary text-xs uppercase mb-1"><i class="fas fa-users-cog mr-1"></i> Operadores</h4><ul class="text-industrial-primary text-sm space-y-1">${operatorNames.length > 0 ? operatorNames.map(name => `<li class="truncate" title="${name}">${name}</li>`).join('') : '<li>-</li>'}</ul></div>
                     <div><h4 class="font-semibold text-industrial-secondary text-xs uppercase mb-1"><i class="fas fa-cogs mr-1"></i> Equipamentos</h4><ul class="text-industrial-primary text-sm space-y-1">${equipmentNames.length > 0 ? equipmentNames.map(name => `<li class="truncate" title="${name}">${name}</li>`).join('') : '<li>-</li>'}</ul></div>
@@ -266,7 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (searchableText.includes(searchTerm)) { card.style.display = 'flex'; visibleCardsCount++; }
             else { card.style.display = 'none'; }
         });
-
         const hasTasksInCache = fetchedTasksCache.length > 0;
         if (visibleCardsCount === 0) {
             noOngoingTasksMessage.classList.remove('hidden');
@@ -274,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 noOngoingTasksMessage.textContent = "Nenhum apontamento encontrado para o termo pesquisado.";
             } else if (!hasTasksInCache) {
                 noOngoingTasksMessage.textContent = "Nenhum apontamento em andamento.";
-            } else { // Tem tarefas no cache, mas o filtro não achou nada (e não tem termo de busca, o que é estranho, mas cobre)
+            } else {
                  noOngoingTasksMessage.textContent = "Nenhum apontamento em andamento visível.";
             }
         } else {
@@ -284,53 +334,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function handleMultiOrderStop(activityIdToExclude = null) {
         const isMultiOrderMode = sessionStorage.getItem('multiOrderModeEnabled') === 'true';
-        if (!isMultiOrderMode) return true; // Se não está no modo, permite prosseguir
-
-        // Encontra a tarefa que está "Em Andamento" e não é a que estamos tentando manipular (activityIdToExclude)
+        if (!isMultiOrderMode) return true;
         const activeTask = fetchedTasksCache.find(task =>
             task.status === 'Em Andamento' &&
             (!activityIdToExclude || task.code.toString() !== activityIdToExclude.toString())
         );
-
         if (activeTask) {
             showMessage(`Modo Múltipla Ordem: Parando automaticamente a tarefa ${activeTask.order_code} / ${activeTask.activity.description} (ID: ${activeTask.code})...`, 'info', mainMessageArea);
-            // Usa um motivo de parada padrão para paradas automáticas (ex: '20' - Parada Automática Sistema)
-            // O 'false' é para não mostrar mensagem de sucesso da parada automática na área principal,
-            // pois a mensagem principal será da ação que o usuário está realizando.
-            const stopResult = await stopActivity(activeTask.code, '20', false);
+            const stopResult = await stopActivity(activeTask.code, '20', false); // '20' = motivo de parada automática (exemplo)
             if (!stopResult.success) {
                 showMessage(`Falha ao parar automaticamente a tarefa anterior (${activeTask.code}). Ação cancelada.`, 'error', mainMessageArea);
-                await fetchOngoingTasks(); // Atualiza para refletir o estado real
-                return false; // Impede a ação original
+                await fetchOngoingTasks();
+                return false;
             }
-            // Não precisa de 'else', se deu certo, a função continua e retorna true no final.
         }
-        return true; // Permite prosseguir se não havia tarefa para parar ou se a parada foi bem-sucedida
+        return true;
     }
-
 
     async function stopActivity(activityId, reasonId, showSuccessMsg = true) {
         const apiUrl = `http://127.0.0.1:8000/api/v1/order-activity-progress/${activityId}/stop/`;
         const modalMsgArea = stopReasonModal ? stopReasonModal.querySelector('#stopReasonModalMessageArea') : mainMessageArea;
-
         if (!reasonId) {
             showMessage('Por favor, selecione um motivo para a parada.', 'error', modalMsgArea);
             return { success: false, error: 'Motivo não selecionado' };
         }
-
         if(showSuccessMsg) showMessage(`Registrando parada para atividade ${activityId}...`, 'info', modalMsgArea);
-
         try {
             const payload = { stop_reason_code: reasonId };
-            // Adiciona multi_order_mode ao payload se necessário pela lógica do backend ao parar
-            // payload.multi_order_mode = sessionStorage.getItem('multiOrderModeEnabled') === 'true';
-
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || `Falha ao registrar parada (HTTP ${response.status})`);
@@ -340,37 +375,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 showMessage(result.message || `Atividade ${activityId} parada.`, 'success', mainMessageArea);
             }
             if(stopReasonModal) closeModal(stopReasonModal);
-            await fetchOngoingTasks(); // Atualiza a lista após a ação
+            await fetchOngoingTasks();
             return { success: true };
         } catch (error) {
             console.error("Erro ao parar atividade:", error);
             showMessage(`Erro: ${error.message}`, 'error', modalMsgArea);
-            // Não recarrega as tarefas aqui, pois pode ter sido uma falha de validação (ex: motivo não selecionado)
             return { success: false, error: error.message };
         }
     }
 
     async function resumeActivity(activityIdToResume) {
-        // Verifica se outra tarefa precisa ser parada antes de retomar esta
         const canProceed = await handleMultiOrderStop(activityIdToResume);
         if (!canProceed) {
-            await fetchOngoingTasks(); // Garante que a UI reflita o estado atual se a ação foi bloqueada
+            await fetchOngoingTasks();
             return;
         }
-
         const apiUrl = `http://127.0.0.1:8000/api/v1/order-activity-progress/${activityIdToResume}/resume/`;
         showMessage(`Retomando apontamento ${activityIdToResume}...`, 'info', mainMessageArea);
-
         try {
             const payload = {
                 multi_order_mode: sessionStorage.getItem('multiOrderModeEnabled') === 'true'
             };
             const response = await fetch(apiUrl, {
                  method: 'POST',
-                 headers: { 'Content-Type': 'application/json' }, // Adicionado para consistência, mesmo que o corpo seja simples
-                 body: JSON.stringify(payload) // Envia o payload
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify(payload)
             });
-
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || `Falha ao retomar (HTTP ${response.status})`);
@@ -381,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error("Erro ao retomar atividade:", error);
             showMessage(`Erro ao retomar: ${error.message}`, 'error', mainMessageArea);
-            await fetchOngoingTasks(); // Atualiza para refletir o estado real, mesmo em caso de erro
+            await fetchOngoingTasks();
         }
     }
 
@@ -392,7 +422,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         showMessage('Finalizando apontamento...', 'info', modalMsgArea);
-
         const apiUrl = `http://127.0.0.1:8000/api/v1/order-activity-progress/${activityId}/`;
         try {
             const response = await fetch(apiUrl, {
@@ -418,15 +447,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const modalMsgArea = orderInteractionModal ? orderInteractionModal.querySelector('#orderInteractionModalMessageArea') : mainMessageArea;
         const failedButton = document.querySelector(`button[data-step-info*='"code":${stepInfo.code}']`);
 
-        // Verifica se outra tarefa precisa ser parada antes de iniciar esta
-        const canProceed = await handleMultiOrderStop(); // Não passa ID para excluir, pois é uma nova tarefa
+        const canProceed = await handleMultiOrderStop();
         if (!canProceed) {
             if (failedButton) {
                 failedButton.disabled = false;
                 const spinner = failedButton.querySelector('i.fa-spinner');
                 if (spinner) spinner.remove();
             }
-            // A mensagem de erro já foi mostrada por handleMultiOrderStop
             return;
         }
 
@@ -448,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
             company_code: stepInfo.company_code,
             branch_code: stepInfo.branch_code,
             order_code: stepInfo.order_code,
-            activity_code: stepInfo.activity_code, // Este é o código da Atividade (ex: 'TORNO-01')
+            activity_code: stepInfo.activity_code,
             sequence: stepInfo.sequence,
             operator_code: operatorCode,
             equipment_code: equipmentCode,
@@ -467,10 +494,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 const errorData = await response.json();
                 throw new Error(`Falha ao iniciar apontamento: ${errorData.error || JSON.stringify(errorData)} (HTTP ${response.status})`);
             }
-            const result = await response.json();
+            const result = await response.json(); // API deve retornar o 'code' (ID) da nova OrderActivityProgress
             showMessage(result.message || 'Apontamento iniciado com sucesso!', 'success', mainMessageArea);
-            if(orderInteractionModal) closeModal(orderInteractionModal);
-            await fetchOngoingTasks();
+
+            const isMultiOrderMode = sessionStorage.getItem('multiOrderModeEnabled') === 'true';
+            if (!isMultiOrderMode && result.code) {
+                console.log(`Redirecionando para detalhes da atividade ${result.code}`);
+                closeModal(orderInteractionModal);
+                window.location.href = `order-details.html?activityId=${result.code}`;
+            } else {
+                closeModal(orderInteractionModal);
+                await fetchOngoingTasks();
+                if (isMultiOrderMode) {
+                     showMessage('Apontamento iniciado. Modo Múltipla Ordem ATIVADO.', 'success', mainMessageArea);
+                }
+            }
+
         } catch (error) {
             console.error("Erro ao iniciar apontamento:", error);
             showMessage(`Erro: ${error.message}`, 'error', modalMsgArea);
@@ -492,23 +531,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (opGroup) opGroup.style.display = 'block';
         if (opInput) {
-            // Limpa o campo se for contexto de abrir ordem no modo terminal
             opInput.value = clearInputsIfTerminalOrderContext ? '' : (sessionStorage.getItem('operatorCode') || '');
             opInput.required = requireOperator;
         }
-
         if (eqGroup) eqGroup.style.display = 'block';
         if (eqInput) {
-            // Limpa o campo se for contexto de abrir ordem no modo terminal
             eqInput.value = clearInputsIfTerminalOrderContext ? '' : (sessionStorage.getItem('equipmentCode') || '');
             eqInput.required = requireEquipment;
         }
-
         let messageText = 'Insira os códigos necessários.';
         if (requireOperator && requireEquipment) messageText = 'Operador e Equipamento são obrigatórios.';
         else if (requireOperator) messageText = 'Código do Operador é obrigatório.';
         else if (requireEquipment) messageText = 'Código do Equipamento é obrigatório.';
-
         showMessage(messageText, 'info', msgArea);
         openModal(opEqModal);
     }
@@ -518,26 +552,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const modalTitle = orderInteractionModal.querySelector('#orderInteractionModalTitle');
         const modalContent = orderInteractionModal.querySelector('#orderInteractionModalContent');
         const modalMsgArea = orderInteractionModal.querySelector('#orderInteractionModalMessageArea');
-
         const apiUrl = `http://127.0.0.1:8000/api/v1/order-items/?order_code=${encodeURIComponent(orderCode)}`;
 
         if(modalTitle) modalTitle.textContent = `Etapas da Ordem: ${orderCode}`;
         if(modalContent) modalContent.innerHTML = `<p class="text-industrial-secondary p-4 text-center">Buscando etapas...</p>`;
-        showMessage('', 'info', modalMsgArea); // Limpa mensagens anteriores
+        showMessage('', 'info', modalMsgArea);
         openModal(orderInteractionModal);
 
         try {
             const response = await fetch(apiUrl);
             if (!response.ok) throw new Error(`Erro ao buscar etapas: ${response.statusText} (HTTP ${response.status})`);
             const orderItems = await response.json();
-
-            // Assume que orderItems é uma lista de itens de pedido, cada um podendo ter 'structure_activities'
             const allSteps = Array.isArray(orderItems) ? orderItems.flatMap(item =>
                 (item.structure_activities || []).map(activity => ({
-                    ...activity, // Contém activity_code, activity_description, sequence
-                    order_code: item.order_code, // Adiciona o código da ordem ao objeto da etapa
-                    company_code: item.company_code, // Adiciona company_code
-                    branch_code: item.branch_code   // Adiciona branch_code
+                    ...activity,
+                    order_code: item.order_code,
+                    company_code: item.company_code,
+                    branch_code: item.branch_code
                 }))
             ) : [];
 
@@ -554,14 +585,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             </button>
                         `).join('')}
                     </div>`;
-
-                // Adiciona event listeners aos botões de etapa recém-criados
                 modalContent.querySelectorAll('.order-step-button').forEach(button => {
                     button.onclick = async () => {
                         const stepInfo = JSON.parse(button.dataset.stepInfo);
                         button.disabled = true;
                         button.innerHTML += ' <i class="fas fa-spinner fa-spin ml-2"></i>';
-                        // Passa operatorCode e equipmentCode que já foram validados ou obtidos
                         await startActivityAppointment(stepInfo, operatorCode, equipmentCode);
                     };
                 });
@@ -579,24 +607,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const loginType = sessionStorage.getItem('loginType');
         let opCode = sessionStorage.getItem('operatorCode');
         let eqCode = sessionStorage.getItem('equipmentCode');
-
         let needsOp = !opCode;
         let needsEq = !eqCode;
-        let clearInputsForModal = false; // Flag para limpar inputs no modal Op/Eq
+        let clearInputsForModal = false;
 
-        if (loginType === 'terminal') { // Em modo terminal, sempre precisa informar e limpar os campos
+        if (loginType === 'terminal') {
             needsOp = true;
             needsEq = true;
             clearInputsForModal = true;
         }
-        // Se já estiver em modo 'station', mas faltar algum, também precisa (clearInputsForModal será false)
-
         if (needsOp || needsEq) {
-            // Guarda o código da ordem para processar depois que op/eq forem informados
             currentOrderCodeForProcessing = orderCode;
-            openOpEqModalForChanges(needsOp, needsEq, clearInputsForModal); // Passa a flag
+            openOpEqModalForChanges(needsOp, needsEq, clearInputsForModal);
         } else {
-            // Já tem op e eq (provavelmente modo estação ou terminal já configurado anteriormente - este último caso não deveria acontecer com a nova lógica)
             await fetchOrderStepsForDisplay(orderCode, opCode, eqCode);
         }
     }
@@ -616,8 +639,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <button type="submit" class="w-full bg-industrial-accent hover:bg-sky-400 text-white font-semibold py-2 px-4 rounded-md">Buscar Etapas</button>
             </form>`;
-        if(modalMsgArea) showMessage('', 'info', modalMsgArea); // Limpa mensagens anteriores
-
+        if(modalMsgArea) showMessage('', 'info', modalMsgArea);
         openModal(orderInteractionModal);
 
         const form = document.getElementById('modalOrderCodeForm');
@@ -627,7 +649,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const orderCodeInput = document.getElementById('modalOrderCode');
                 const orderCode = orderCodeInput ? orderCodeInput.value.trim() : null;
                 if (orderCode) {
-                    // currentOrderCodeForProcessing = orderCode; // Definido dentro de validateLoginModeAndProceed se necessário
                     await validateLoginModeAndProceed(orderCode);
                 } else {
                     if(modalMsgArea) showMessage('Insira um código de ordem válido.', 'error', modalMsgArea);
@@ -636,59 +657,49 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- EVENT LISTENERS E INICIALIZAÇÃO ---
     function setupEventListeners() {
-        // Listener para cliques no body (para botões de ação, modais, etc.)
         document.body.addEventListener('click', async (event) => {
             const button = event.target.closest('button');
-            if (!button || button.disabled) return; // Ignora se não for um botão ou se estiver desabilitado
-
-            const action = button.dataset.action; // Pega o data-action do botão clicado
+            if (!button || button.disabled) return;
+            const action = button.dataset.action;
             const card = button.closest('.task-card');
             const modal = button.closest('.modal');
-
-            // Tenta pegar o activityId do card se a ação for em um card, ou do input hidden no modal
             let activityId = card ? card.dataset.activityId : null;
             if (!activityId && modal) {
-                const activityIdInput = modal.querySelector('[id$="ModalActivityId"]'); // Ex: stopModalActivityId
+                const activityIdInput = modal.querySelector('[id$="ModalActivityId"]');
                 if (activityIdInput) activityId = activityIdInput.value;
             }
 
-            // Ações do Cabeçalho (identificadas por ID)
             if (button.id === 'triggerOpenOrderModalButton') {
-                currentOrderCodeForProcessing = null; // Reseta para nova busca de ordem
+                currentOrderCodeForProcessing = null;
                 displayOrderCodeInputInModal();
                 return;
             }
             if (button.id === 'changeOpEqButton') {
-                currentOrderCodeForProcessing = null; // Não está processando uma ordem específica ao trocar op/eq globalmente
-                openOpEqModalForChanges(true, true); // Requer ambos para modo estação
+                currentOrderCodeForProcessing = null;
+                openOpEqModalForChanges(true, true);
                 return;
             }
             if (button.id === 'switchModeButton') {
                 const currentLoginType = sessionStorage.getItem('loginType');
-                currentOrderCodeForProcessing = null; // Reseta ao trocar de modo
+                currentOrderCodeForProcessing = null;
                 if (currentLoginType === 'station') {
                     sessionStorage.setItem('loginType', 'terminal');
-                    // Limpa dados específicos do modo estação
                     ['operatorCode', 'operatorName', 'operatorData', 'equipmentCode', 'equipmentName', 'equipmentData', 'multiOrderModeEnabled'].forEach(item => sessionStorage.removeItem(item));
-                    loadUserInfo(); // Atualiza a UI (inclusive o toggle de multi-ordem)
+                    loadUserInfo();
                     showMessage('Modo alterado para Terminal. Multi-Ordem desativado.', 'success', mainMessageArea);
-                } else { // Estava em terminal, quer ir para estação
+                } else {
                     showMessage('Para ativar o Modo Estação, por favor, informe o Operador e o Equipamento.', 'info', mainMessageArea);
-                    openOpEqModalForChanges(true, true); // Requer ambos para modo estação
+                    openOpEqModalForChanges(true, true);
                 }
                 return;
             }
 
-            // Ações baseadas em data-action
             if (action) {
                 switch (action) {
-                    // Ações nos Cartões
                     case 'resume-task':
                         button.disabled = true; button.innerHTML = `<i class="fas fa-spinner fa-spin fa-xl"></i>`;
                         await resumeActivity(activityId);
-                        // O botão será re-renderizado ou seu estado atualizado por fetchOngoingTasks
                         break;
                     case 'stop-task':
                         if (stopReasonModal && activityId) {
@@ -701,8 +712,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (finalizeTaskModal && activityId) {
                             finalizeTaskModal.querySelector('#finalizeModalActivityId').value = activityId;
                             const qtyInput = finalizeTaskModal.querySelector('#finalizeQuantityInput');
-                            if(qtyInput) qtyInput.value = ''; // Limpa valor anterior
-                            showMessage('', 'info', finalizeTaskModal.querySelector('#finalizeTaskModalMessageArea')); // Limpa msg anterior
+                            if(qtyInput) qtyInput.value = '';
+                            showMessage('', 'info', finalizeTaskModal.querySelector('#finalizeTaskModalMessageArea'));
                             openModal(finalizeTaskModal);
                         }
                         break;
@@ -710,15 +721,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (ncModal && activityId) {
                             ncModal.querySelector('#ncModalActivityId').value = activityId;
                             const qtyNcInput = ncModal.querySelector('#ncQuantityInput');
-                            if(qtyNcInput) qtyNcInput.value = ''; // Limpa valor anterior
-                            showMessage('', 'info', ncModal.querySelector('#ncModalMessageArea')); // Limpa msg anterior
+                            if(qtyNcInput) qtyNcInput.value = '';
+                            showMessage('', 'info', ncModal.querySelector('#ncModalMessageArea'));
                             await loadReasonsToSelect('nc');
                             openModal(ncModal);
                         }
                         break;
-
-                    // Submits de Modais e outras ações (exceto opEqForm que é tratado separadamente abaixo)
-                    case 'submit-stop': // ID do botão no HTML: submitStopReason
+                    case 'submit-stop':
                         if (modal && modal.id === 'stopReasonModal') {
                             button.disabled = true;
                             const reasonId = modal.querySelector('#stopReasonSelect').value;
@@ -727,30 +736,28 @@ document.addEventListener('DOMContentLoaded', () => {
                             button.disabled = false;
                         }
                         break;
-                    case 'submit-finalize': // ID do botão no HTML: submitFinalizeTask
+                    case 'submit-finalize':
                          if (modal && modal.id === 'finalizeTaskModal') {
                             button.disabled = true;
                             const quantity = modal.querySelector('#finalizeQuantityInput').value;
                             const currentActivityId = modal.querySelector('#finalizeModalActivityId').value;
                             await finalizeActivityAppointment(currentActivityId, quantity);
-                            button.disabled = false; // Reabilita após a tentativa
+                            button.disabled = false;
                         }
                         break;
-                    case 'submit-nc': // ID do botão no HTML: submitNc
+                    case 'submit-nc':
                         if (modal && modal.id === 'ncModal') {
                             button.disabled = true;
                             const ncReasonId = modal.querySelector('#ncReasonSelect').value;
                             const ncQuantity = modal.querySelector('#ncQuantityInput').value;
-                            const currentActivityId = modal.querySelector('#ncModalActivityId').value; // Certifique-se que é o activityId correto
+                            const currentActivityId = modal.querySelector('#ncModalActivityId').value;
                             const ncMsgArea = modal.querySelector('#ncModalMessageArea');
-
                             if (!ncReasonId) { showMessage('Selecione um motivo para a não conformidade.', 'error', ncMsgArea); button.disabled = false; return; }
                             if (!ncQuantity || parseInt(ncQuantity, 10) <= 0) { showMessage('Insira uma quantidade válida para a não conformidade.', 'error', ncMsgArea); button.disabled = false; return; }
-
                             showMessage('Registrando Não Conformidade...', 'info', ncMsgArea);
                             const payload = {
-                                order_activity: currentActivityId, // ID do OrderActivityProgress
-                                non_conformance: ncReasonId,     // ID/Código do motivo da NC
+                                order_activity: currentActivityId,
+                                non_conformance: ncReasonId,
                                 quantity: parseInt(ncQuantity, 10)
                             };
                             try {
@@ -773,12 +780,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         }
                         break;
-
-                    // Botão de Fechar Modal genérico
                     case 'close-modal':
                         if (modal) {
                             closeModal(modal);
-                            // Limpar mensagens de erro específicas do modal ao fechar
                             const modalMsgArea = modal.querySelector('[id$="ModalMessageArea"]');
                             if (modalMsgArea) showMessage('', 'info', modalMsgArea);
                         }
@@ -787,22 +791,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Listener para o submit do formulário opEqModal (opEqForm) - REGISTRADO UMA VEZ
         if (opForm) {
             opForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 const submitBtn = opForm.querySelector('button[type="submit"]');
                 const msgArea = opForm.querySelector('#opEqModalMessageArea');
-
-                // Captura o tipo de login NO MOMENTO em que o processo que levou a este submit começou.
                 const loginTypeWhenModalWasTriggered = sessionStorage.getItem('loginType');
-
                 if(submitBtn) submitBtn.disabled = true;
                 showMessage('Validando informações...', 'info', msgArea);
-
                 const opInput = opForm.querySelector('#modalOperatorCode');
                 const eqInput = opForm.querySelector('#modalEquipmentCode');
-
                 const inputOpCode = (opInput && opInput.required) ? opInput.value.trim() : (opInput ? opInput.value.trim() : null);
                 const inputEqCode = (eqInput && eqInput.required) ? eqInput.value.trim() : (eqInput ? eqInput.value.trim() : null);
 
@@ -816,10 +814,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if(submitBtn) submitBtn.disabled = false;
                     return;
                 }
-
                 let opDetails = {}, eqDetails = {};
                 let proceed = true;
-
                 if (inputOpCode) {
                     const opResult = await buscarInfoOperador(inputOpCode);
                     if (opResult.error) {
@@ -829,7 +825,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         opDetails = opResult;
                     }
                 }
-
                 if (proceed && inputEqCode) {
                     const eqResult = await buscarInfoEquipamento(inputEqCode);
                     if (eqResult.error) {
@@ -839,22 +834,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         eqDetails = eqResult;
                     }
                 }
-
                 if(submitBtn) submitBtn.disabled = false;
 
                 if (proceed) {
-                    // CASO 1: Estava em MODO TERMINAL e o modal Op/Eq foi aberto para uma ORDEM ESPECÍFICA.
-                    // Os códigos são temporários para esta ordem. Não salva no sessionStorage, não muda o modo.
                     if (loginTypeWhenModalWasTriggered === 'terminal' && currentOrderCodeForProcessing && inputOpCode && inputEqCode) {
                         closeModal(opEqModal);
-                        // Usar os códigos fornecidos (inputOpCode, inputEqCode) diretamente para buscar as etapas.
                         await fetchOrderStepsForDisplay(currentOrderCodeForProcessing, inputOpCode, inputEqCode);
-                        currentOrderCodeForProcessing = null; // Limpa após o uso.
-                    }
-                    // CASO 2: Qualquer outra situação (configurar/atualizar Modo Estação ou voltar para Terminal).
-                    else {
+                        currentOrderCodeForProcessing = null;
+                    } else {
                         if (inputOpCode && inputEqCode) {
-                            // Ambos os códigos fornecidos: configurar ou atualizar para Modo Estação.
                             sessionStorage.setItem('loginType', 'station');
                             sessionStorage.setItem('operatorCode', inputOpCode);
                             sessionStorage.setItem('operatorName', opDetails.operatorName);
@@ -862,43 +850,31 @@ document.addEventListener('DOMContentLoaded', () => {
                             sessionStorage.setItem('equipmentCode', inputEqCode);
                             sessionStorage.setItem('equipmentName', eqDetails.equipmentName);
                             if(eqDetails.data) sessionStorage.setItem('equipmentData', JSON.stringify(eqDetails.data));
-
-                            loadUserInfo(); // Atualiza a UI, habilita multi-ordem se aplicável.
+                            loadUserInfo();
                             showMessage('Modo Estação configurado/atualizado.', 'success', mainMessageArea);
                         } else if (loginTypeWhenModalWasTriggered === 'station') {
-                            // Estava em Modo Estação, mas agora os códigos estão incompletos (um ou ambos não fornecidos/limpos).
-                            // Volta para Modo Terminal.
                             sessionStorage.setItem('loginType', 'terminal');
                             ['operatorCode', 'operatorName', 'operatorData', 'equipmentCode', 'equipmentName', 'equipmentData', 'multiOrderModeEnabled'].forEach(item => sessionStorage.removeItem(item));
                             loadUserInfo();
                             showMessage('Dados de Op/Eq incompletos. Retornando ao Modo Terminal.', 'info', mainMessageArea);
                         }
-                        // Se loginTypeWhenModalWasTriggered era 'terminal', não havia currentOrderCodeForProcessing,
-                        // e o usuário não forneceu ambos os códigos (inputOpCode && inputEqCode é falso),
-                        // o modal apenas fecha. Mensagens de erro sobre campos obrigatórios já teriam sido mostradas.
-
                         closeModal(opEqModal);
-
-                        // Se havia uma ordem pendente E AGORA estamos em modo estação com dados válidos (após as operações acima).
                         if (currentOrderCodeForProcessing && sessionStorage.getItem('loginType') === 'station' && sessionStorage.getItem('operatorCode') && sessionStorage.getItem('equipmentCode')) {
                             await fetchOrderStepsForDisplay(
                                 currentOrderCodeForProcessing,
-                                sessionStorage.getItem('operatorCode'), // Usa do sessionStorage porque o modo é estação
+                                sessionStorage.getItem('operatorCode'),
                                 sessionStorage.getItem('equipmentCode')
                             );
                             currentOrderCodeForProcessing = null;
                         } else if (currentOrderCodeForProcessing) {
-                            // Havia uma ordem pendente, mas não foi possível configurar o modo estação ou obter os dados necessários.
                             showMessage('Operador e Equipamento são necessários para abrir a ordem. Verifique as configurações.', 'error', mainMessageArea);
                             currentOrderCodeForProcessing = null;
                         }
                     }
                 }
-                // Se 'proceed' for false, as mensagens de erro já foram mostradas pelas validações ou buscas.
             });
         }
 
-        // Outros listeners
         if (searchInputOngoingTasks) {
             searchInputOngoingTasks.addEventListener('input', filterOngoingTasks);
         }
@@ -907,65 +883,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isEnabled = event.target.checked;
                 sessionStorage.setItem('multiOrderModeEnabled', isEnabled);
                 showMessage(`Modo Múltipla Ordem ${isEnabled ? 'ATIVADO' : 'DESATIVADO'}.`, 'info', mainMessageArea);
-                // Se desativado, não há ação imediata nas tarefas existentes.
-                // A lógica de parada automática só ocorre ao iniciar/retomar uma nova tarefa.
             });
         }
     }
-// ../script/home.js
-
-// ... (código existente) ...
-
-// ../script/home.js
-
-// ... (todo o código anterior, incluindo a PRIMEIRA E COMPLETA definição de setupEventListeners) ...
 
     // --- WEBSOCKET ---
     let taskWebSocket = null;
-
     function setupWebSocket() {
-        // Use ws:// para HTTP ou wss:// para HTTPS
-        const wsUrl = `ws://127.0.0.1:8000/ws/tasks/`; // Configure esta URL no seu Django Channels routing
+        const wsUrl = `ws://127.0.0.1:8000/ws/tasks/`;
         taskWebSocket = new WebSocket(wsUrl);
-
         taskWebSocket.onopen = function(e) {
             console.log('WebSocket connection opened.');
-            // Opcional: enviar alguma mensagem inicial para o servidor
         };
-
         taskWebSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
             console.log('WebSocket message received:', data);
-
             if (data.type === 'task_update') {
-                // Uma tarefa foi atualizada no backend.
-                // A forma mais simples é re-carregar todas as tarefas.
-                // Uma forma mais otimizada seria atualizar apenas o card específico.
                 showMessage(`Atualização recebida para tarefa ${data.activity_id}. Atualizando lista...`, 'info', mainMessageArea);
-                fetchOngoingTasks(); // Re-carrega a lista completa
+                fetchOngoingTasks();
             }
-            // Adicionar outros tipos de mensagens se necessário
         };
-
         taskWebSocket.onerror = function(e) {
             console.error('WebSocket error observed:', e);
-            // Tentar reconectar após um tempo?
         };
-
         taskWebSocket.onclose = function(e) {
             console.log('WebSocket connection closed, code:', e.code, 'reason:', e.reason);
-            // Tentar reconectar após um tempo se o fechamento não for intencional
-            if (e.code !== 1000) { // 1000 é fechamento normal
+            if (e.code !== 1000) {
                 console.log('Attempting to reconnect WebSocket in 5 seconds...');
-                setTimeout(setupWebSocket, 5000); // Tenta reconectar após 5 segundos
+                setTimeout(setupWebSocket, 5000);
             }
         };
     }
 
     // --- INICIALIZAÇÃO DO SCRIPT ---
-    // Certifique-se que a setupEventListeners() chamada aqui é a versão completa definida anteriormente.
     setupEventListeners();
     loadUserInfo();
     fetchOngoingTasks();
-    setupWebSocket(); // Inicia a conexão WebSocket quando a página carrega
+    setupWebSocket();
 });

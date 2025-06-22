@@ -3,7 +3,6 @@ from django.contrib import admin
 from .models import Company, Branch
 
 
-
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
     list_display = ('code', 'name', 'corporate_reason', 'cnpj', 'is_active')

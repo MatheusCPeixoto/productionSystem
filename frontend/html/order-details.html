@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes da Etapa - Apontamento de Produção</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style/order-details.css">
+</head>
+<body class="bg-industrial-dark text-industrial-primary min-h-screen">
+
+    <!-- Menu Lateral -->
+    <aside id="sideMenu" class="bg-industrial-medium h-full w-64 fixed top-0 left-0 z-40 transform -translate-x-full transition-transform duration-300 ease-in-out">
+        <div class="p-4">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-white text-xl font-bold">Navegação</h2>
+                <button id="closeMenuButton" class="text-industrial-secondary hover:text-white">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="home.html" class="block py-2.5 px-4 rounded hover:bg-industrial-light transition-colors duration-150">Página Principal</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="absolute bottom-0 left-0 w-full p-4 border-t border-industrial-light">
+            <p class="text-xs text-industrial-secondary text-center">Sistema de Apontamento v1.0</p>
+        </div>
+    </aside>
+    <div id="menuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
+
+    <!-- Cabeçalho -->
+    <header class="bg-industrial-medium/80 backdrop-blur-md p-4 shadow-lg fixed w-full top-0 z-20">
+        <div class="container mx-auto flex justify-between items-center gap-4">
+            <div class="flex items-center">
+                <button id="menuToggleButton" class="mr-3 text-white p-2 rounded hover:bg-industrial-light transition-colors duration-150">
+                    <i class="fas fa-bars fa-lg"></i>
+                </button>
+                <div class="text-xl font-semibold flex items-center">
+                    <i class="fas fa-tasks mr-2 text-industrial-accent"></i>
+                    <span id="pageTitle">Detalhes da Etapa</span>
+                </div>
+            </div>
+            <div id="userInfoContainer" class="text-md font-medium">
+                <!-- Preenchido por JS -->
+            </div>
+        </div>
+    </header>
+
+    <main id="mainContent" class="container mx-auto pt-24 pb-8 px-4 transition-all duration-300 ease-in-out">
+        <!-- BOTÕES DE AÇÃO SUPERIORES -->
+        <div id="mainActionButtons" class="flex flex-wrap gap-2 mb-6 justify-center">
+            <button id="resumeOrderActivityBtn" title="Retomar Atividade Principal"
+                class="action-button bg-blue-500 hover:bg-blue-600">
+                <i class="fas fa-play-circle mr-2"></i>Retomar
+            </button>
+            <button id="stopOrderActivityBtn" title="Parar Atividade Principal"
+                class="action-button bg-yellow-500 hover:bg-yellow-600">
+                <i class="fas fa-pause-circle mr-2"></i>Parar
+            </button>
+            <button id="finalizeOrderActivityBtn" title="Finalizar Atividade Principal"
+                class="action-button bg-green-500 hover:bg-green-600">
+                <i class="fas fa-check-circle mr-2"></i>Finalizar
+            </button>
+            <button id="ncOrderActivityBtn" title="Registrar Não Conformidade para Atividade Principal"
+                class="action-button bg-red-500 hover:bg-red-600">
+                <i class="fas fa-exclamation-triangle mr-2"></i>Não Conformidade
+            </button>
+        </div>
+        <div id="detailPageMessageArea" class="mb-6"></div>
+
+
+        <!-- Seção Superior: Informações da Etapa, Produto, Quantidades -->
+        <section id="orderInfoSection" class="mb-8 p-6 bg-industrial-medium rounded-xl shadow-xl border border-industrial-light">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+                <div>
+                    <h3 class="text-sm font-semibold text-industrial-secondary uppercase mb-1">Ordem / Etapa</h3>
+                    <p id="infoOrderStep" class="text-lg text-industrial-primary font-medium">Carregando...</p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-industrial-secondary uppercase mb-1">Produto</h3>
+                    <p id="infoProduct" class="text-lg text-industrial-primary font-medium">Carregando...</p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-industrial-secondary uppercase mb-1">Quantidades</h3>
+                    <div id="infoQuantities" class="text-md text-industrial-primary space-y-1">
+                        <p>Planejado: <span id="qtyPlanned" class="font-semibold">...</span></p>
+                        <p>Produzido: <span id="qtyProduced" class="font-semibold text-green-400">...</span></p>
+                        <p>Restante: <span id="qtyRemaining" class="font-semibold text-yellow-400">...</span></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção de Abas -->
+        <section class="mb-8">
+            <div class="border-b border-industrial-light">
+                <nav class="-mb-px flex space-x-1 sm:space-x-2 md:space-x-4 overflow-x-auto pb-px" aria-label="Tabs">
+                    <button data-target="tabApontamentos" class="tab-button active">
+                        <i class="fas fa-clipboard-list mr-2 opacity-80"></i>Apontamentos
+                    </button>
+                    <button data-target="tabInstrucaoTrabalho" class="tab-button">
+                        <i class="fas fa-book-reader mr-2 opacity-80"></i>Instrução de Trabalho
+                    </button>
+                    <button data-target="tabImagens" class="tab-button">
+                        <i class="fas fa-images mr-2 opacity-80"></i>Imagens
+                    </button>
+                    <button data-target="tabDesenhos" class="tab-button">
+                        <i class="fas fa-drafting-compass mr-2 opacity-80"></i>Desenhos
+                    </button>
+                    <button data-target="tabProjeto3D" class="tab-button">
+                        <i class="fas fa-cube mr-2 opacity-80"></i>Projeto 3D
+                    </button>
+                    <button data-target="tabPDFs" class="tab-button">
+                        <i class="fas fa-file-pdf mr-2 opacity-80"></i>Documentos
+                    </button>
+                </nav>
+            </div>
+        </section>
+
+        <!-- Conteúdo das Abas -->
+        <section id="tabContentSection">
+            <!-- Aba: Apontamentos Realizados -->
+            <div id="tabApontamentos" class="tab-content active p-4 sm:p-6 bg-industrial-medium rounded-b-lg shadow-lg space-y-8">
+                <div>
+                    <h3 class="text-xl font-semibold text-industrial-primary mb-3 border-b border-industrial-light pb-2">Apontamentos de Mão de Obra</h3>
+                    <div id="workforceLogsContainer" class="overflow-x-auto">
+                        <p class="text-industrial-secondary">Carregando apontamentos de mão de obra...</p>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-industrial-primary mb-3 border-b border-industrial-light pb-2">Apontamentos de Equipamento</h3>
+                    <div id="equipmentLogsContainer" class="overflow-x-auto">
+                        <p class="text-industrial-secondary">Carregando apontamentos de equipamento...</p>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-industrial-primary mb-3 border-b border-industrial-light pb-2">Histórico de Atividades Finalizadas</h3>
+                    <div id="finishedActivityLogsContainer" class="overflow-x-auto">
+                        <p class="text-industrial-secondary">Carregando histórico de atividades finalizadas...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba: Instrução de Trabalho -->
+            <div id="tabInstrucaoTrabalho" class="tab-content hidden p-4 sm:p-6 bg-industrial-medium rounded-b-lg shadow-lg">
+                <h3 class="text-xl font-semibold text-industrial-primary mb-4">Instrução de Trabalho</h3>
+                <!-- Sub-abas -->
+                <div class="border-b border-industrial-light mb-4">
+                    <nav class="-mb-px flex space-x-1 sm:space-x-2" aria-label="SubTabsInstrucao">
+                        <button data-subtarget="subtabPreparacao" class="subtab-button active-subtab">
+                            <i class="fas fa-tools mr-2 opacity-80"></i>Preparação
+                        </button>
+                        <button data-subtarget="subtabExecucao" class="subtab-button">
+                            <i class="fas fa-cogs mr-2 opacity-80"></i>Execução
+                        </button>
+                        <button data-subtarget="subtabConferencia" class="subtab-button">
+                            <i class="fas fa-check-double mr-2 opacity-80"></i>Conferência
+                        </button>
+                    </nav>
+                </div>
+                <!-- Conteúdo das Sub-Abas -->
+                <div id="subtabContentSectionInstrucao">
+                    <div id="subtabPreparacao" class="subtab-content active-subtab-content prose prose-sm prose-invert max-w-none text-industrial-secondary">
+                        <p>Carregando instruções de preparação...</p>
+                    </div>
+                    <div id="subtabExecucao" class="subtab-content hidden prose prose-sm prose-invert max-w-none text-industrial-secondary">
+                        <p>Carregando instruções de execução...</p>
+                    </div>
+                    <div id="subtabConferencia" class="subtab-content hidden prose prose-sm prose-invert max-w-none text-industrial-secondary">
+                        <p>Carregando instruções de conferência...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba: Imagens -->
+            <div id="tabImagens" class="tab-content hidden p-4 sm:p-6 bg-industrial-medium rounded-b-lg shadow-lg">
+                <h3 class="text-xl font-semibold text-industrial-primary mb-4">Imagens de Referência</h3>
+                <div id="imageGallery" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    <p class="text-industrial-secondary col-span-full">Nenhuma imagem disponível ou carregando...</p>
+                </div>
+            </div>
+
+            <!-- Aba: Desenhos Técnicos -->
+            <div id="tabDesenhos" class="tab-content hidden p-4 sm:p-6 bg-industrial-medium rounded-b-lg shadow-lg">
+                <h3 class="text-xl font-semibold text-industrial-primary mb-4">Desenhos Técnicos</h3>
+                <div id="technicalDrawingViewer" class="space-y-3">
+                    <p class="text-industrial-secondary">Nenhum desenho técnico disponível ou carregando...</p>
+                </div>
+            </div>
+
+            <!-- Aba: Projeto 3D (STL) -->
+            <div id="tabProjeto3D" class="tab-content hidden p-4 sm:p-6 bg-industrial-medium rounded-b-lg shadow-lg">
+                <h3 class="text-xl font-semibold text-industrial-primary mb-4">Visualizador de Projeto 3D (STL)</h3>
+                <div id="stlViewerContainer" class="space-y-3">
+                     <p class="text-industrial-secondary">Nenhum arquivo STL disponível ou carregando...</p>
+                </div>
+                <p class="mt-2 text-sm text-industrial-secondary">Nota: A visualização de arquivos STL pode requerer interação ou download.</p>
+            </div>
+
+            <!-- Aba: Documentos (PDF) -->
+            <div id="tabPDFs" class="tab-content hidden p-4 sm:p-6 bg-industrial-medium rounded-b-lg shadow-lg">
+                <h3 class="text-xl font-semibold text-industrial-primary mb-4">Documentos e Manuais (PDF)</h3>
+                <div id="pdfListContainer" class="space-y-3">
+                    <p class="text-industrial-secondary">Nenhum documento PDF disponível ou carregando...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal para visualização de imagem -->
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4 hidden">
+        <div class="bg-industrial-medium p-4 rounded-lg shadow-xl max-w-4xl max-h-[90vh] relative">
+            <button id="closeImageModal" class="absolute top-2 right-2 text-white hover:text-industrial-accent text-2xl z-10">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="modalImageSrc" src="" alt="Imagem Ampliada" class="max-w-full max-h-[85vh] object-contain rounded">
+        </div>
+    </div>
+
+    <!-- MODAIS PARA AÇÕES -->
+    <div id="stopReasonModalDetails" class="fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-[60] p-4 hidden">
+        <div class="bg-industrial-medium p-6 rounded-lg shadow-xl w-full max-w-md space-y-4 border border-industrial-light text-white">
+            <h3 class="text-lg font-semibold">Motivo da Parada</h3>
+            <input type="hidden" id="stopModalLogTypeDetails"> <!-- 'activity', 'workforce', 'equipment' -->
+            <input type="hidden" id="stopModalLogIdDetails">
+            <select id="stopReasonSelectDetails" class="w-full p-2 border-2 border-industrial-light bg-industrial-dark rounded-md"></select>
+            <div id="stopReasonModalMessageAreaDetails" class="text-sm"></div>
+            <div class="flex justify-end space-x-3">
+                <button type="button" data-action="close-stop-modal-details" class="bg-industrial-light hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md">Cancelar</button>
+                <button type="button" id="submitStopReasonDetails" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md">Confirmar Parada</button>
+            </div>
+        </div>
+    </div>
+
+     <div id="finalizeTaskModalDetails" class="fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-[60] p-4 hidden">
+        <div class="bg-industrial-medium p-6 rounded-lg shadow-xl w-full max-w-md space-y-4 border border-industrial-light text-white">
+            <h3 class="text-lg font-semibold">Finalizar Atividade Principal</h3>
+            <div>
+                <label for="finalizeQuantityInputDetails" class="block text-sm font-medium mb-1">Quantidade Produzida:</label>
+                <input type="number" id="finalizeQuantityInputDetails" class="w-full p-2 border-2 border-industrial-light bg-industrial-dark rounded-md" min="0" required>
+            </div>
+            <div id="finalizeTaskModalMessageAreaDetails" class="text-sm"></div>
+            <div class="flex justify-end space-x-3">
+                <button type="button" data-action="close-finalize-modal-details" class="bg-industrial-light hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md">Cancelar</button>
+                <button type="button" id="submitFinalizeTaskDetails" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="ncModalDetails" class="fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-[60] p-4 hidden">
+        <div class="bg-industrial-medium p-6 rounded-lg shadow-xl w-full max-w-md space-y-4 border border-industrial-light text-white">
+            <h3 class="text-lg font-semibold">Registrar Não Conformidade</h3>
+            <div><label for="ncReasonSelectDetails" class="block text-sm font-medium mb-1">Motivo:</label><select id="ncReasonSelectDetails" class="w-full p-2 border-2 border-industrial-light bg-industrial-dark rounded-md"></select></div>
+            <div><label for="ncQuantityInputDetails" class="block text-sm font-medium mb-1">Quantidade NC:</label><input type="number" id="ncQuantityInputDetails" class="w-full p-2 border-2 border-industrial-light bg-industrial-dark rounded-md" min="0" required></div>
+            <div id="ncModalMessageAreaDetails" class="text-sm"></div>
+            <div class="flex justify-end space-x-3">
+                <button type="button" data-action="close-nc-modal-details" class="bg-industrial-light hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md">Cancelar</button>
+                <button type="button" id="submitNcDetails" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md">Registrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../script/order-details.js" defer></script>
+</body>
+</html>

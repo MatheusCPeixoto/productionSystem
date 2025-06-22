@@ -70,7 +70,7 @@ class OrderActivityProgress(models.Model):
     )
 
     class Meta:
-        managed = True
+        managed = False
         db_table = 'A_ATIVIDADE'
         verbose_name = 'Atividade da Ordem'
         verbose_name_plural = 'Atividades da Ordem'

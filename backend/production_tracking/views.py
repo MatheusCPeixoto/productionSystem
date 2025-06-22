@@ -1,25 +1,151 @@
 from rest_framework import viewsets, status
 from django.db import transaction
 from django.db.models import Q
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.utils import timezone
 from rest_framework.decorators import action
+from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404
 
 from .models import OrderActivityProgress, ActivityEquipmentLog, ActivityWorkforceLog, ActivityNonConformanceLog, WorkforceStoppageLog, EquipmentStoppageLog
-from .serializers import OrderActivityProgressSerializer, ActivityNonConformanceLogSerializer
+from .serializers import OrderActivityProgressSerializer, ActivityNonConformanceLogSerializer, ActivityEquipmentSerializer, ActivityWorkforceSerializer
+from .filters import ActivityWorkforceLogFilter, ActivityEquipmentLogFilter, OrderActivityProgressFilter
 from activitys.models import Activity # Exemplo de onde o modelo Activity pode estar
 from enterprises.models import Company, Branch # Exemplo
 from orders.models import Order # Exemplo
 from workforces.models import Workforce # Exemplo
 from equipments.models import Equipment # Exemplo
 from stop_reasons.models import StopReason
+from products.models import ProductFile
+from products.serializers import ProductFileSerializer
 
 
 class ActivityNonConformanceViewSet(viewsets.ModelViewSet):
     queryset = ActivityNonConformanceLog.objects.all()
     serializer_class = ActivityNonConformanceLogSerializer
 
+
+
+class ActivityEquipmentLogViewSet(viewsets.ModelViewSet):
+    queryset = ActivityEquipmentLog.objects.all()
+    serializer_class = ActivityEquipmentSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ActivityEquipmentLogFilter
+
+
+class ActivityWorkforceLogViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para gerenciar os apontamentos de mão de obra, com ações
+    individuais de parada, retomada e finalização.
+    """
+    queryset = ActivityWorkforceLog.objects.all()
+    serializer_class = ActivityWorkforceSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ActivityWorkforceLogFilter
+
+    @action(detail=True, methods=['post'], url_path='stop')
+    def stop(self, request, pk=None):
+        """
+        Para um apontamento de mão de obra individual.
+        Define o status como 'Parado' e cria um log de parada separado.
+        """
+        workforce_log = self.get_object()
+
+        if workforce_log.end_date:
+            return Response(
+                {'error': 'Este apontamento já foi finalizado e não pode ser parado.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        stop_reason_code = request.data.get('stop_reason_code')
+        if not stop_reason_code:
+            return Response(
+                {'error': 'O código do motivo da parada é obrigatório.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            stop_reason = StopReason.objects.get(code=stop_reason_code)
+        except StopReason.DoesNotExist:
+            return Response(
+                {'error': f'Motivo da parada com código "{stop_reason_code}" não encontrado.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # **CORREÇÃO CRÍTICA**: Atualiza o status do apontamento do operador
+
+            # Cria o log de parada específico para este evento
+            # NOTA: Isso assume que seu modelo WorkforceStoppageLog tem um campo ForeignKey 'workforce_log'
+            WorkforceStoppageLog.objects.create(
+                order_activity=workforce_log.order_activity,
+                #workforce_log=workforce_log,
+                workforce_code=workforce_log.workforce_code,
+                stop_reason_code=stop_reason,
+                start_date=timezone.now()
+            )
+
+            return Response(
+                {'message': f'Apontamento do operador {workforce_log.workforce_code.code} parado com sucesso.'},
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            print(f"ERRO INTERNO AO PARAR LOG: {e}")
+            return Response(
+                {'error': f'Ocorreu um erro interno no servidor: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['patch'], url_path='resume')
+    def resume(self, request, pk=None):
+        """
+        Retoma um apontamento de mão de obra que estava parado.
+        """
+        workforce_log = self.get_object()
+
+        # Encontra o último log de parada aberto para este apontamento e o finaliza
+        stoppage_log = WorkforceStoppageLog.objects.filter(
+            #workforce_log=workforce_log,
+            end_date__isnull=True
+        ).order_by('-start_date').first()
+
+        if stoppage_log:
+            stoppage_log.end_date = timezone.now()
+            stoppage_log.save()
+
+        return Response(
+            {'message': f'Apontamento do operador {workforce_log.workforce_code.code} retomado.'},
+            status=status.HTTP_200_OK
+        )
+
+    @action(detail=True, methods=['patch'], url_path='finalize')
+    def finalize(self, request, pk=None):
+        """
+        Finaliza permanentemente um apontamento de mão de obra.
+        """
+        workforce_log = self.get_object()
+        if workforce_log.end_date:
+            return Response({'error': 'Este apontamento já foi finalizado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        now = timezone.now()
+
+        if workforce_log.status == 'Parado':
+            stoppage_log = WorkforceStoppageLog.objects.filter(
+                workforce_log=workforce_log,
+                end_date__isnull=True
+            ).order_by('-start_date').first()
+            if stoppage_log:
+                stoppage_log.end_date = now
+                stoppage_log.save()
+
+        workforce_log.status = 'Finalizado'
+        workforce_log.end_date = now
+        workforce_log.save()
+
+        return Response(
+            {'message': f'Apontamento do operador {workforce_log.workforce_code.code} finalizado.'},
+            status=status.HTTP_200_OK
+        )
 
 class OrderActivityProgressViewSet(viewsets.ModelViewSet):
     """
@@ -29,6 +155,8 @@ class OrderActivityProgressViewSet(viewsets.ModelViewSet):
     serializer_class = OrderActivityProgressSerializer
     # O queryset principal que lista os apontamentos
     queryset = OrderActivityProgress.objects.all().order_by('-start_date')
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = OrderActivityProgressFilter
 
     # Método auxiliar privado para reutilizar a lógica de parada
     def _perform_stop_logic(self, activity_progress, stop_reason):
@@ -186,3 +314,13 @@ class OrderActivityProgressViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': f'Ocorreu um erro interno ao finalizar: {str(e)}'},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['get'], url_path='product-files')
+    def product_files(self, request, pk=None):
+        activity_progress = self.get_object()
+        if not activity_progress.activity or not activity_progress.activity.product:  # Assumindo que Activity tem FK para Product
+            return Response({"error": "Produto não associado a esta atividade."}, status=404)
+
+        product_files_qs = ProductFile.objects.filter(product=activity_progress.activity.product)
+        serializer = ProductFileSerializer(product_files_qs, many=True, context={'request': request})
+        return Response(serializer.data)

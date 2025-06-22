@@ -15,6 +15,7 @@ class ActivityEquipmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActivityEquipmentLog
         fields = (
+            'order_activity',
             'code',
             'equipment_code',
             'equipment_description',
@@ -28,6 +29,7 @@ class ActivityWorkforceSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActivityWorkforceLog
         fields = (
+            'order_activity',
             'code',
             'workforce_code',
             'workforce_name',

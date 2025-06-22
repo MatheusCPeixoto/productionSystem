@@ -43,29 +43,77 @@
 </head>
 <body class="bg-industrial-dark text-industrial-primary min-h-screen">
 
-    <header class="bg-industrial-medium/70 backdrop-blur-sm p-4 shadow-lg fixed w-full top-0 z-10">
-        <div class="container mx-auto flex flex-wrap justify-between items-center gap-4">
-            <div class="text-lg font-semibold order-1">
-                <i class="fas fa-user-circle mr-2 text-industrial-accent"></i>
-                <span id="userInfoDisplay"></span>
+    <aside id="sideMenu" class="bg-industrial-medium h-full w-64 fixed top-0 left-0 z-40 transform -translate-x-full transition-transform duration-300 ease-in-out">
+        <div class="p-4">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-white text-xl font-bold">Navegação</h2>
+                <!-- BOTÃO DE FECHAR ADICIONADO AQUI -->
+                <button id="closeMenuButton" class="text-industrial-secondary hover:text-white">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
             </div>
-            <div class="flex items-center space-x-2 order-2 sm:order-3 sm:ml-auto">
-                 <div class="flex items-center space-x-2 mr-2" id="multiOrderToggleContainer" title="No Modo Múltipla Ordem, apenas uma tarefa pode estar 'Em Andamento' por vez.">
-                    <span class="text-sm font-medium hidden sm:inline">Múltipla Ordem</span>
-                    <label for="multiOrderToggle" class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" value="" id="multiOrderToggle" class="sr-only peer" disabled>
-                        <div class="w-11 h-6 bg-industrial-light rounded-full peer peer-focus:ring-2 peer-focus:ring-industrial-accent peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                    </label>
+            <nav>
+                <ul>
+                    <li><a href="home.html" class="block py-2.5 px-4 rounded hover:bg-industrial-light transition-colors duration-150">Página Principal</a></li>
+                    <li><a href="#" class="block py-2.5 px-4 rounded hover:bg-industrial-light transition-colors duration-150">Painel Admin</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="absolute bottom-0 left-0 w-full p-4 border-t border-industrial-light">
+            <p class="text-xs text-industrial-secondary text-center">Sistema de Apontamento v1.0</p>
+        </div>
+    </aside>
+
+    <div id="menuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
+
+    <header class="bg-industrial-medium/70 backdrop-blur-sm p-4 shadow-lg fixed w-full top-0 z-20">
+        <div class="container mx-auto flex justify-between items-center gap-4">
+            <div class="flex items-center">
+                <button id="menuToggleButton" class="mr-3 text-white p-2 rounded hover:bg-industrial-light transition-colors duration-150">
+                    <i class="fas fa-bars fa-lg"></i>
+                </button>
+                <div class="text-xl font-semibold flex items-center">
+                    <i class="fas fa-industry mr-2 text-industrial-accent"></i>
+                    <span>Apontamentos</span>
                 </div>
-                <button id="triggerOpenOrderModalButton" data-action="open-order-modal" class="bg-industrial-accent hover:bg-sky-400 text-white font-bold py-2 px-3 rounded-lg flex items-center space-x-2 text-sm transition duration-150"><i class="fas fa-plus-circle"></i><span>Abrir Ordem</span></button>
-                <button id="changeOpEqButton" data-action="change-op-eq" class="bg-industrial-light hover:bg-gray-600 text-white font-semibold py-2 px-3 rounded-lg flex items-center space-x-2 text-sm transition duration-150"><i class="fas fa-exchange-alt"></i><span class="hidden sm:inline">Trocar</span></button>
-                <button id="switchModeButton" data-action="switch-mode" class="bg-industrial-light hover:bg-gray-600 text-white font-semibold py-2 px-3 rounded-lg flex items-center space-x-2 text-sm transition duration-150"><i class="fas fa-sync-alt"></i><span id="switchModeButtonText"></span></button>
+            </div>
+            <div id="userInfoContainer" class="text-md font-medium">
+                 <i class="fas fa-user-circle mr-2 text-industrial-accent"></i>
+                 <span id="userInfoDisplay">Carregando...</span>
             </div>
         </div>
     </header>
 
-    <main class="container mx-auto pt-24 pb-8 px-4">
+    <main id="mainContentHome" class="container mx-auto pt-24 pb-8 px-4 transition-all duration-300 ease-in-out">
         <div id="mainMessageArea" class="mb-6"></div>
+
+        <!-- LAYOUT DOS BOTÕES DE AÇÃO MODIFICADO -->
+        <div class="flex flex-wrap gap-4 mb-6 items-center justify-between">
+            <label id="multiOrderToggleContainer" for="multiOrderToggle" class="flex items-center space-x-2 cursor-pointer" style="display: none;">
+                <span class="text-sm text-industrial-secondary">Múltipla Ordem:</span>
+                <div class="relative">
+                    <input type="checkbox" id="multiOrderToggle" class="sr-only peer">
+                    <div class="block bg-gray-600 w-10 h-6 rounded-full peer-checked:bg-industrial-accent transition-colors"></div>
+                    <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform peer-checked:translate-x-full"></div>
+                </div>
+            </label>
+            <div class="flex flex-wrap gap-2 items-center"> <!-- Agrupador para botões da direita -->
+                <button id="triggerOpenOrderModalButton" title="Abrir Ordem de Produção"
+                    class="flex items-center bg-industrial-accent hover:bg-sky-400 text-white font-semibold py-2 px-4 rounded-md shadow-md transition-colors duration-150">
+                    <i class="fas fa-folder-open mr-2"></i>Abrir OP
+                </button>
+                <button id="changeOpEqButton" title="Trocar Operador/Equipamento"
+                    class="flex items-center bg-industrial-light hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md shadow-md transition-colors duration-150"
+                    style="display: none;">
+                    <i class="fas fa-exchange-alt mr-2"></i>Trocar Op/Eq
+                </button>
+                <button id="switchModeButton" title="Alternar Modo de Operação"
+                    class="flex items-center bg-industrial-light hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md shadow-md transition-colors duration-150">
+                    <span id="switchModeButtonText">Modo Estação</span>
+                    <i class="fas fa-toggle-on ml-2"></i>
+                </button>
+            </div>
+        </div>
 
         <section class="mb-8">
             <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
@@ -75,12 +123,12 @@
                     <input type="text" id="searchInputOngoingTasks" class="pl-10 pr-3 py-2 rounded-lg border-2 border-industrial-light bg-industrial-medium text-industrial-primary focus:outline-none focus:border-industrial-accent focus:ring-2 focus:ring-industrial-accent w-full sm:w-64" placeholder="Pesquisar...">
                 </div>
             </div>
-
-            <div id="ongoingTasksCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-            <div id="noOngoingTasksMessage" class="text-center py-10 text-industrial-secondary hidden"></div>
+            <div id="ongoingTasksCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6"></div>
+            <div id="noOngoingTasksMessage" class="text-center py-10 text-industrial-secondary hidden">Nenhum apontamento em andamento.</div>
         </section>
     </main>
 
+    <!-- Modais (mantidos como antes) -->
     <div id="orderInteractionModal" class="modal fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-20 p-4">
         <div class="bg-industrial-medium p-6 rounded-lg shadow-xl w-full max-w-lg border border-industrial-light">
             <div class="flex justify-between items-center mb-4">
@@ -91,7 +139,6 @@
             <div id="orderInteractionModalMessageArea" class="mt-4 text-sm"></div>
         </div>
     </div>
-
     <div id="opEqModal" class="modal fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-30 p-4">
         <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md text-gray-800">
             <h3 class="text-lg font-semibold mb-4">Informações Adicionais</h3>
@@ -106,7 +153,6 @@
             </form>
         </div>
     </div>
-
     <div id="stopReasonModal" class="modal fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-20 p-4">
         <div class="bg-industrial-medium p-6 rounded-lg shadow-xl w-full max-w-md space-y-4 border border-industrial-light text-white">
             <h3 class="text-lg font-semibold">Motivo da Parada</h3>
@@ -119,7 +165,6 @@
             </div>
         </div>
     </div>
-
      <div id="finalizeTaskModal" class="modal fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-20 p-4">
         <div class="bg-industrial-medium p-6 rounded-lg shadow-xl w-full max-w-md space-y-4 border border-industrial-light text-white">
             <h3 class="text-lg font-semibold">Finalizar Atividade</h3>
@@ -135,7 +180,6 @@
             </div>
         </div>
     </div>
-
     <div id="ncModal" class="modal fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-20 p-4">
         <div class="bg-industrial-medium p-6 rounded-lg shadow-xl w-full max-w-md space-y-4 border border-industrial-light text-white">
             <h3 class="text-lg font-semibold">Registrar Não Conformidade</h3>

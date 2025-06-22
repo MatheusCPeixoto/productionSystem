@@ -1,6 +1,8 @@
 from pathlib import Path
 import os
 
+import os
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -68,6 +70,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -127,11 +130,16 @@ USE_I18N = True
 
 USE_TZ = True
 
+<<<<<<< Updated upstream
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # MEDIA_URL = '/media/'
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
+=======
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR / 'staticfiles')
+>>>>>>> Stashed changes
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -152,6 +160,7 @@ SPECTACULAR_SETTINGS = {
 # settings.py
 CORS_ALLOWED_ORIGINS_STR = os.environ.get('CORS_ALLOWED_ORIGINS', '')
 CORS_ALLOWED_ORIGINS = [
+<<<<<<< Updated upstream
     origin.strip() for origin in CORS_ALLOWED_ORIGINS_STR.split(',') if origin.strip()
 ]
 
@@ -159,4 +168,22 @@ STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
+=======
+    "http://localhost:63343",
+    "http://127.0.0.1:63342",
+    "http://localhost:63342",
+    "http://127.0.0.1:63343",
+    # Adicione variações se necessário
+]
+
+JAZZMIN_SETTINGS = {
+    "theme": "flatly",
+    "dark_mode_theme": "darkly",
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index"},
+        {"model": "auth.User"},
+        {"app": "products"}
+    ],
+    "show_sidebar": False,
+>>>>>>> Stashed changes
 }

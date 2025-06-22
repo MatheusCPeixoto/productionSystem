@@ -1,4 +1,12 @@
 from django.db import models
+import os
+
+
+def get_product_file_path(instance, filename):
+    """ Gera o caminho do arquivo, ex: products/PRD-001/images/desenho_vista_frontal.jpg """
+    product_code = instance.product.code # Ou outro identificador único do produto
+    file_type_folder = instance.get_file_type_display().lower().replace(' ', '_') # ex: 'desenho_tecnico'
+    return os.path.join('products/media', str(product_code), file_type_folder, filename)
 
 
 class Product(models.Model):
@@ -743,6 +751,98 @@ class Product(models.Model):
         null=True,
         verbose_name='CF Preço Mínimo'
     )  # Field name made lowercase.
+    uses_nfe_batch = models.CharField(
+        db_column='UTILIZA_LOTE_NFE',
+        max_length=3,
+        blank=True,
+        null=True,
+        verbose_name='Utiliza Lote NFe'
+    )  # Field name made lowercase.
+    anp_code = models.CharField( # ANP = Agência Nacional do Petróleo
+        db_column='CODIGO_ANP',
+        max_length=9,
+        blank=True,
+        null=True,
+        verbose_name='Código ANP'
+    )  # Field name made lowercase.
+    anp_description = models.CharField(
+        db_column='DESCRICAO_ANP',
+        max_length=250,
+        blank=True,
+        null=True,
+        verbose_name='Descrição ANP'
+    )  # Field name made lowercase.
+    no_stock_control = models.IntegerField(
+        db_column='NAO_CONTROLA_ESTOQUE',
+        blank=True,
+        null=True,
+        verbose_name='Não Controla Estoque'
+    )  # Field name made lowercase.
+    gpl_percentage = models.DecimalField( # GPL = Gás Liquefeito de Petróleo
+        db_column='PERCENTUAL_GPL',
+        max_digits=22,
+        decimal_places=4,
+        blank=True,
+        null=True,
+        verbose_name='Percentual GPL'
+    )  # Field name made lowercase.
+    glgnn_percentage = models.DecimalField( # GLGNn = Gás Liquefeito de Gás Natural Nacional
+        db_column='PERCENTUAL_GLGNN',
+        max_digits=22,
+        decimal_places=4,
+        blank=True,
+        null=True,
+        verbose_name='Percentual GLGNn'
+    )  # Field name made lowercase.
+    glgni_percentage = models.DecimalField( # GLGNi = Gás Liquefeito de Gás Natural Importado
+        db_column='PERCENTUAL_GLGNI',
+        max_digits=22,
+        decimal_places=4,
+        blank=True,
+        null=True,
+        verbose_name='Percentual GLGNi'
+    )  # Field name made lowercase.
+    starting_value = models.DecimalField( # Valor de partida
+        db_column='VALOR_PARTIDA',
+        max_digits=14,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        verbose_name='Valor de Partida'
+    )  # Field name made lowercase.
+    family_code3 = models.ForeignKey(
+        'ProductFamily3',
+        models.DO_NOTHING,
+        db_column='CODFAMILIA3',
+        blank=True,
+        null=True,
+        verbose_name='Código Família 3'
+    )  # Field name made lowercase.
+    family_code4 = models.ForeignKey(
+        'ProductFamily4',
+        models.DO_NOTHING,
+        db_column='CODFAMILIA4',
+        blank=True,
+        null=True,
+        verbose_name='Código Família 4'
+    )  # Field name made lowercase.
+    family_code5 = models.ForeignKey(
+        'ProductFamily5',
+        models.DO_NOTHING,
+        db_column='CODFAMILIA5',
+        blank=True,
+        null=True,
+        verbose_name='Código Família 5'
+    )  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'GPRODUTO'
+        verbose_name = 'Produto'
+        verbose_name_plural = 'Produtos'
+
+    def __str__(self):
+        return self.name if self.name else f"Produto {self.code}"
     is_configurable = models.IntegerField(
         db_column='CONFIGURAVEL',
         blank=True,
@@ -940,98 +1040,6 @@ class Product(models.Model):
         null=True,
         verbose_name='Código Benefício Fiscal'
     )  # Field name made lowercase.
-    uses_nfe_batch = models.CharField(
-        db_column='UTILIZA_LOTE_NFE',
-        max_length=3,
-        blank=True,
-        null=True,
-        verbose_name='Utiliza Lote NFe'
-    )  # Field name made lowercase.
-    anp_code = models.CharField( # ANP = Agência Nacional do Petróleo
-        db_column='CODIGO_ANP',
-        max_length=9,
-        blank=True,
-        null=True,
-        verbose_name='Código ANP'
-    )  # Field name made lowercase.
-    anp_description = models.CharField(
-        db_column='DESCRICAO_ANP',
-        max_length=250,
-        blank=True,
-        null=True,
-        verbose_name='Descrição ANP'
-    )  # Field name made lowercase.
-    no_stock_control = models.IntegerField(
-        db_column='NAO_CONTROLA_ESTOQUE',
-        blank=True,
-        null=True,
-        verbose_name='Não Controla Estoque'
-    )  # Field name made lowercase.
-    gpl_percentage = models.DecimalField( # GPL = Gás Liquefeito de Petróleo
-        db_column='PERCENTUAL_GPL',
-        max_digits=22,
-        decimal_places=4,
-        blank=True,
-        null=True,
-        verbose_name='Percentual GPL'
-    )  # Field name made lowercase.
-    glgnn_percentage = models.DecimalField( # GLGNn = Gás Liquefeito de Gás Natural Nacional
-        db_column='PERCENTUAL_GLGNN',
-        max_digits=22,
-        decimal_places=4,
-        blank=True,
-        null=True,
-        verbose_name='Percentual GLGNn'
-    )  # Field name made lowercase.
-    glgni_percentage = models.DecimalField( # GLGNi = Gás Liquefeito de Gás Natural Importado
-        db_column='PERCENTUAL_GLGNI',
-        max_digits=22,
-        decimal_places=4,
-        blank=True,
-        null=True,
-        verbose_name='Percentual GLGNi'
-    )  # Field name made lowercase.
-    starting_value = models.DecimalField( # Valor de partida
-        db_column='VALOR_PARTIDA',
-        max_digits=14,
-        decimal_places=2,
-        blank=True,
-        null=True,
-        verbose_name='Valor de Partida'
-    )  # Field name made lowercase.
-    family_code3 = models.ForeignKey(
-        'ProductFamily3',
-        models.DO_NOTHING,
-        db_column='CODFAMILIA3',
-        blank=True,
-        null=True,
-        verbose_name='Código Família 3'
-    )  # Field name made lowercase.
-    family_code4 = models.ForeignKey(
-        'ProductFamily4',
-        models.DO_NOTHING,
-        db_column='CODFAMILIA4',
-        blank=True,
-        null=True,
-        verbose_name='Código Família 4'
-    )  # Field name made lowercase.
-    family_code5 = models.ForeignKey(
-        'ProductFamily5',
-        models.DO_NOTHING,
-        db_column='CODFAMILIA5',
-        blank=True,
-        null=True,
-        verbose_name='Código Família 5'
-    )  # Field name made lowercase.
-
-    class Meta:
-        managed = False
-        db_table = 'GPRODUTO'
-        verbose_name = 'Produto'
-        verbose_name_plural = 'Produtos'
-
-    def __str__(self):
-        return self.name if self.name else f"Produto {self.code}"
 
 
 class ProductCode(models.Model):
@@ -1044,7 +1052,8 @@ class ProductCode(models.Model):
         'Product',  # Assuming 'Gproduto' translates to 'Product'
         models.DO_NOTHING,
         db_column='CODPRODUTO',
-        verbose_name='Produto'
+        verbose_name='Produto',
+        related_name='similar_codes'
     )  # Field name made lowercase.
     similar_code = models.CharField(
         db_column='CODSIMILAR',
@@ -1571,7 +1580,7 @@ class ProductFamily5(models.Model):
         verbose_name='ID Família 5'
     )  # Field name made lowercase.
     description = models.CharField( # Field name changed from 'descricao_familia3' to 'description' for consistency
-        db_column='DESCRICAO_FAMILIA3',
+        db_column='DESCRICAO_FAMILIA5',
         max_length=100,
         blank=True,
         null=True,
@@ -1602,3 +1611,63 @@ class ProductFamily5(models.Model):
 
     def __str__(self):
         return self.description if self.description else f"Família 5 ({self.family5_id or self.code})"
+
+
+def get_product_file_path(instance, filename):
+    """ Gera o caminho do arquivo, ex: products/PRD-001/images/desenho_vista_frontal.jpg """
+    product_code = instance.product.code # Ou outro identificador único do produto
+    file_type_folder = instance.get_file_type_display().lower().replace(' ', '_') # ex: 'desenho_tecnico'
+    return os.path.join('products/media', str(product_code), file_type_folder, filename)
+
+
+class ProductFile(models.Model):
+    class FileType(models.TextChoices):
+        IMAGE = 'IMAGE', 'Imagem'
+        PDF = 'PDF', 'PDF'
+        TECHNICAL_DRAWING = 'TECHNICAL_DRAWING', 'Desenho Técnico'
+        STL = 'STL', 'Modelo 3D (.stl)'
+
+    product = models.ForeignKey(
+        'Product',
+        on_delete=models.CASCADE,
+        related_name='files',
+        verbose_name='Produto'
+    )
+
+    name = models.CharField(
+        max_length=150,
+        verbose_name='Nome / Título do Arquivo'
+    )
+
+    file_type = models.CharField(
+        max_length=20,
+        choices=FileType.choices,
+        verbose_name='Tipo de Arquivo'
+    )
+
+    file = models.FileField(
+        upload_to=get_product_file_path,
+        verbose_name='Arquivo'
+    )
+
+    activities = models.ManyToManyField(
+        'activitys.Activity',  # Ajuste o caminho para seu modelo de Atividade
+        blank=True,  # Permite que um arquivo não seja associado a nenhuma atividade (será para TODAS)
+        verbose_name='Atividades Específicas',
+        help_text='Selecione uma ou mais atividades. Se nenhuma for selecionada, este arquivo será válido para todas as atividades do produto.'
+    )
+    # --- FIM DO NOVO CAMPO ---
+
+    uploaded_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Data de Upload'
+    )
+
+    class Meta:
+        verbose_name = 'Arquivo de Produto'
+        verbose_name_plural = 'Arquivos de Produto'
+        ordering = ['file_type', 'name']
+
+    def __str__(self):
+        return f"{self.name} ({self.get_file_type_display()}) para {self.product.name}"
+

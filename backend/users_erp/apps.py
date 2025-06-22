@@ -4,3 +4,4 @@ from django.apps import AppConfig
 class UserErpConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'users_erp'
+    verbose_name = 'Usuário ERP'

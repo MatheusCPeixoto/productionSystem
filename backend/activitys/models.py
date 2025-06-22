@@ -13,13 +13,17 @@ class Activity(models.Model):
         db_column='CODCOLIGADA',
         blank=True,
         null=True,
-        verbose_name='Empresa'
+        verbose_name='Empresa',
+        related_name='activity_company_code'
     )
-    branch_code = models.IntegerField(
+    branch_code = models.ForeignKey(
+        'enterprises.Branch',
+        models.DO_NOTHING,
         db_column='CODFILIAL',
         blank=True,
         null=True,
-        verbose_name='Filial'
+        verbose_name='Filial',
+        related_name='activity_branch_code'
     )
     description = models.CharField(
         db_column='DESCATIVIDADE',
@@ -119,12 +123,12 @@ class ActivityEquipment(models.Model):
         db_column='CODATIVIDADE',
         verbose_name='Atividade'
     )
-    # codequipamento = models.ForeignKey(
-    #     'FEquipamento',
-    #     models.DO_NOTHING,
-    #     db_column='CODEQUIPAMENTO',
-    #     verbose_name='Código do Equipamento'
-    # )
+    equipment_code = models.ForeignKey(
+        'equipments.Equipment',
+        models.DO_NOTHING,
+        db_column='CODEQUIPAMENTO',
+        verbose_name='Código do Equipamento'
+    )
     branch_code = models.ForeignKey(
         'enterprises.Branch',
         models.DO_NOTHING,
@@ -162,13 +166,12 @@ class ActivitySkills(models.Model):
         db_column='CODATIVIDADE',
         verbose_name='Atividade'
     )
-    # skills_code = models.ForeignKey(
-    #     'workforces.Skills',
-    #     models.DO_NOTHING,
-    #     db_column='CODHABILIDADE',
-    #     verbose_name='Código da Habilidade'
-    # )
-    #codhabilidade = models.ForeignKey('FHabilidade', models.DO_NOTHING, db_column='CODHABILIDADE')  # Field name made lowercase.
+    skill_code = models.ForeignKey(
+        'workforces.Skill',
+        models.DO_NOTHING,
+        db_column='CODHABILIDADE',
+        verbose_name='Código da Habilidade'
+    )
     amount_skills = models.IntegerField(
         db_column='QTDHABILIDADE',
         blank=True,
